@@ -1,22 +1,25 @@
-// EventDetail.tsx - Add proper null checks for IPLMatch vs Event types
+
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Event, IPLMatch, eventsData, iplMatchesData } from '@/data/eventsData';
+import { Event, events } from '@/data/eventsData';
+import { IPLMatch, iplMatches } from '@/data/iplData';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 
+// Fix the params type to satisfy the constraint
 interface EventDetailParams {
   id: string;
+  [key: string]: string;
 }
 
 const EventDetail = () => {
   const { id } = useParams<EventDetailParams>();
 
   // Combine both events and IPL matches into a single array
-  const allEvents: (Event | IPLMatch)[] = [...eventsData, ...iplMatchesData];
+  const allEvents: (Event | IPLMatch)[] = [...events, ...iplMatches];
 
   // Find the event by ID from the combined array
   const event = allEvents.find(event => event.id === id);
@@ -107,10 +110,10 @@ const EventDetail = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-3">Ticket Types</h2>
                 <div className="space-y-3">
                   {event.ticketTypes.map(ticket => (
-                    <div key={ticket.name} className="flex items-center justify-between">
+                    <div key={ticket.category} className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium text-gray-800">{ticket.name}</div>
-                        <div className="text-sm text-gray-600">{ticket.description}</div>
+                        <div className="font-medium text-gray-800">{ticket.category}</div>
+                        <div className="text-sm text-gray-600">Available: {ticket.available}</div>
                       </div>
                       <div className="font-bold text-lg">₹{ticket.price}</div>
                     </div>
