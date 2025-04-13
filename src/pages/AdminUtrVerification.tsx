@@ -228,106 +228,106 @@ const AdminUtrVerification = () => {
                     Verified ({verifiedUTRs.length})
                   </TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="pending" className="mt-0">
+                  <div className="bg-white rounded-md shadow-sm border overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-muted/50">
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">UTR Number</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Date</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Customer</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Event</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Amount</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {filteredPendingUTRs.length > 0 ? (
+                            filteredPendingUTRs.map((utr) => (
+                              <tr key={utr.id} className="hover:bg-muted/20">
+                                <td className="px-4 py-3 font-medium">{utr.id}</td>
+                                <td className="px-4 py-3 text-gray-600">{new Date(utr.date).toLocaleDateString()}</td>
+                                <td className="px-4 py-3">{utr.customerName}</td>
+                                <td className="px-4 py-3 max-w-xs truncate">{utr.event}</td>
+                                <td className="px-4 py-3 font-medium">₹{utr.amount.toLocaleString()}</td>
+                                <td className="px-4 py-3">
+                                  <Button variant="ghost" size="icon" onClick={() => viewDetails(utr)}>
+                                    <PenLine className="h-4 w-4" />
+                                    <span className="sr-only">View Details</span>
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                                No pending UTRs found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="verified" className="mt-0">
+                  <div className="bg-white rounded-md shadow-sm border overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-muted/50">
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">UTR Number</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Date</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Customer</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Event</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+                            <th className="px-4 py-3 text-left font-medium text-gray-500">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {filteredVerifiedUTRs.length > 0 ? (
+                            filteredVerifiedUTRs.map((utr) => (
+                              <tr key={utr.id} className="hover:bg-muted/20">
+                                <td className="px-4 py-3 font-medium">{utr.id}</td>
+                                <td className="px-4 py-3 text-gray-600">{new Date(utr.date).toLocaleDateString()}</td>
+                                <td className="px-4 py-3">{utr.customerName}</td>
+                                <td className="px-4 py-3 max-w-xs truncate">{utr.event}</td>
+                                <td className="px-4 py-3">
+                                  <UTRStatusComponent status={utr.status} />
+                                </td>
+                                <td className="px-4 py-3">
+                                  {utr.status === 'Verified' ? (
+                                    <Button variant="ghost" size="sm" className="text-primary" onClick={() => startDispatch(utr)}>
+                                      <Send className="h-4 w-4 mr-1" />
+                                      Dispatch
+                                    </Button>
+                                  ) : (
+                                    <Button variant="ghost" size="sm" onClick={() => viewDetails(utr)}>
+                                      <PenLine className="h-4 w-4 mr-1" />
+                                      Details
+                                    </Button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                                No verified UTRs found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
           </div>
-
-          <TabsContent value="pending" className="mt-0" hidden={selectedTab !== 'pending'}>
-            <div className="bg-white rounded-md shadow-sm border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/50">
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">UTR Number</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Date</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Customer</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Event</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Amount</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {filteredPendingUTRs.length > 0 ? (
-                      filteredPendingUTRs.map((utr) => (
-                        <tr key={utr.id} className="hover:bg-muted/20">
-                          <td className="px-4 py-3 font-medium">{utr.id}</td>
-                          <td className="px-4 py-3 text-gray-600">{new Date(utr.date).toLocaleDateString()}</td>
-                          <td className="px-4 py-3">{utr.customerName}</td>
-                          <td className="px-4 py-3 max-w-xs truncate">{utr.event}</td>
-                          <td className="px-4 py-3 font-medium">₹{utr.amount.toLocaleString()}</td>
-                          <td className="px-4 py-3">
-                            <Button variant="ghost" size="icon" onClick={() => viewDetails(utr)}>
-                              <PenLine className="h-4 w-4" />
-                              <span className="sr-only">View Details</span>
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                          No pending UTRs found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="verified" className="mt-0" hidden={selectedTab !== 'verified'}>
-            <div className="bg-white rounded-md shadow-sm border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/50">
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">UTR Number</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Date</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Customer</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Event</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {filteredVerifiedUTRs.length > 0 ? (
-                      filteredVerifiedUTRs.map((utr) => (
-                        <tr key={utr.id} className="hover:bg-muted/20">
-                          <td className="px-4 py-3 font-medium">{utr.id}</td>
-                          <td className="px-4 py-3 text-gray-600">{new Date(utr.date).toLocaleDateString()}</td>
-                          <td className="px-4 py-3">{utr.customerName}</td>
-                          <td className="px-4 py-3 max-w-xs truncate">{utr.event}</td>
-                          <td className="px-4 py-3">
-                            <UTRStatusComponent status={utr.status} />
-                          </td>
-                          <td className="px-4 py-3">
-                            {utr.status === 'Verified' ? (
-                              <Button variant="ghost" size="sm" className="text-primary" onClick={() => startDispatch(utr)}>
-                                <Send className="h-4 w-4 mr-1" />
-                                Dispatch
-                              </Button>
-                            ) : (
-                              <Button variant="ghost" size="sm" onClick={() => viewDetails(utr)}>
-                                <PenLine className="h-4 w-4 mr-1" />
-                                Details
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                          No verified UTRs found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </TabsContent>
         </div>
       </main>
 
