@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { IPLMatch, iplMatches } from '@/data/iplData';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnimatedButton from '@/components/ui/AnimatedButton';
+import BookingModal from '@/components/booking/BookingModal';
 
 // Fix the params type to satisfy the constraint
 interface EventDetailParams {
@@ -17,6 +18,7 @@ interface EventDetailParams {
 
 const EventDetail = () => {
   const { id } = useParams<EventDetailParams>();
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   // Combine both events and IPL matches into a single array
   const allEvents: (Event | IPLMatch)[] = [...events, ...iplMatches];
@@ -54,8 +56,9 @@ const EventDetail = () => {
     return 'category' in item && 'duration' in item;
   };
 
-  // Inside your component where you're displaying category and duration
-  // Replace the problematic lines with conditional rendering:
+  const handleBookNow = () => {
+    setIsBookingModalOpen(true);
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -129,12 +132,19 @@ const EventDetail = () => {
               </div>
               
               <div className="mt-6">
-                <AnimatedButton className="w-full">Book Now</AnimatedButton>
+                <AnimatedButton className="w-full" onClick={handleBookNow}>Book Now</AnimatedButton>
               </div>
             </div>
           </div>
         </div>
       </main>
+      
+      <BookingModal 
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        eventTitle={event.title}
+        ticketTypes={event.ticketTypes}
+      />
       
       <Footer />
     </div>
