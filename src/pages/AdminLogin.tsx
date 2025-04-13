@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { Shield, Lock } from 'lucide-react';
 const AdminLogin = () => {
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +36,8 @@ const AdminLogin = () => {
           title: "Login successful",
           description: "Welcome to the admin dashboard",
         });
-        // In a real app, we would store the token and redirect to the admin dashboard
+        // Redirect to the admin dashboard
+        navigate('/admin-dashboard');
       } else {
         toast({
           title: "Invalid admin token",

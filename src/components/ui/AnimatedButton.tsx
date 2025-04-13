@@ -15,7 +15,7 @@ const AnimatedButton = ({
 }: AnimatedButtonProps) => {
   const animationClasses = {
     pulse: 'animate-pulse-light',
-    scale: 'scale-up-hover',
+    scale: 'hover:scale-105 transition-transform duration-200',
     none: ''
   };
 
@@ -30,3 +30,4 @@ const AnimatedButton = ({
 };
 
 export default AnimatedButton;
+export { AnimatedButton };
