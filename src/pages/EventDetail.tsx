@@ -104,7 +104,14 @@ const EventDetail = () => {
                 )}
               </div>
               
-              <p className="text-gray-700 mb-6">{event.description}</p>
+              {/* Add conditional rendering for description */}
+              {isEvent(event) ? (
+                <p className="text-gray-700 mb-6">{event.description}</p>
+              ) : (
+                <div className="mb-6">
+                  <p className="text-gray-700">Match between {event.teams.team1.name} and {event.teams.team2.name}</p>
+                </div>
+              )}
               
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-3">Ticket Types</h2>
