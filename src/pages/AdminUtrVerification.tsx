@@ -2,196 +2,170 @@
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { PenLine, Check, X, Search, Send, Clock, CheckCircle2, AlertTriangle, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Search, CheckCircle, XCircle, Truck, AlertCircle, ArrowDownAZ, ArrowUpAZ, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // Mock data for UTR verifications
-const pendingUTRs = [
-  { 
-    id: 'UTR12345678', 
-    date: '2025-04-10', 
-    amount: 3000, 
-    event: 'IPL 2025: MI vs CSK', 
-    customerName: 'Rahul Sharma',
-    email: 'rahul.s@example.com',
-    phone: '+91 9876543210',
-    tickets: [
-      { type: 'Premium Stand', quantity: 1, price: 3000 }
-    ],
-    address: '123 Main St, Andheri East, Mumbai 400069',
-    note: ''
+const utrData = [
+  {
+    id: 'UTR123456',
+    customerName: 'Amit Sharma',
+    email: 'amit.sharma@example.com',
+    phone: '9876543210',
+    address: '123 Main Street, Mumbai, Maharashtra 400001',
+    amount: 4500,
+    status: 'pending',
+    date: '2023-05-15T10:30:00Z',
+    eventName: 'IPL: MI vs CSK',
+    ticketCategory: 'Premium',
+    quantity: 2
   },
-  { 
-    id: 'UTR23456789', 
-    date: '2025-04-11', 
-    amount: 10000, 
-    event: 'IPL 2025: RCB vs KKR', 
+  {
+    id: 'UTR123457',
     customerName: 'Priya Patel',
-    email: 'priya.p@example.com',
-    phone: '+91 9876543211',
-    tickets: [
-      { type: 'VIP Box', quantity: 1, price: 8000 },
-      { type: 'General Stand', quantity: 2, price: 1000 }
-    ],
-    address: '45 Park Avenue, Koramangala, Bangalore 560034',
-    note: 'Customer requested express delivery'
+    email: 'priya.patel@example.com',
+    phone: '9876543211',
+    address: '456 Park Avenue, Delhi, Delhi 110001',
+    amount: 3000,
+    status: 'verified',
+    date: '2023-05-14T14:45:00Z',
+    eventName: 'IPL: RCB vs KKR',
+    ticketCategory: 'General',
+    quantity: 3
   },
-  { 
-    id: 'UTR34567890', 
-    date: '2025-04-12', 
-    amount: 1200, 
-    event: 'Cricket Legends Meet & Greet', 
-    customerName: 'Arjun Singh',
-    email: 'arjun.s@example.com',
-    phone: '+91 9876543212',
-    tickets: [
-      { type: 'Standard Entry', quantity: 2, price: 600 }
-    ],
-    address: '78 Lake View, Salt Lake, Kolkata 700091',
-    note: 'First-time customer'
+  {
+    id: 'UTR123458',
+    customerName: 'Rahul Verma',
+    email: 'rahul.verma@example.com',
+    phone: '9876543212',
+    address: '789 Lake View, Bangalore, Karnataka 560001',
+    amount: 6000,
+    status: 'dispatched',
+    date: '2023-05-13T09:15:00Z',
+    eventName: 'Music Festival',
+    ticketCategory: 'VIP',
+    quantity: 2
   },
-];
-
-const verifiedUTRs = [
-  { 
-    id: 'UTR45678901', 
-    date: '2025-04-09', 
-    amount: 8000, 
-    event: 'IPL 2025: PBKS vs SRH', 
-    customerName: 'Vikram Mehta',
-    email: 'vikram.m@example.com',
-    phone: '+91 9876543213',
-    tickets: [
-      { type: 'VIP Box', quantity: 1, price: 8000 }
-    ],
-    address: '22 Golf Links, Civil Lines, Delhi 110001',
-    note: '',
-    status: 'Dispatched',
-    verifiedBy: 'Admin',
-    ticketIds: ['TICKET-001-A', 'TICKET-001-B']
+  {
+    id: 'UTR123459',
+    customerName: 'Sneha Desai',
+    email: 'sneha.desai@example.com',
+    phone: '9876543213',
+    address: '101 River Road, Chennai, Tamil Nadu 600001',
+    amount: 2500,
+    status: 'pending',
+    date: '2023-05-16T11:20:00Z',
+    eventName: 'Comedy Night',
+    ticketCategory: 'Standard',
+    quantity: 5
   },
-  { 
-    id: 'UTR56789012', 
-    date: '2025-04-08', 
-    amount: 4500, 
-    event: 'T20 Cricket Clinic for Kids', 
-    customerName: 'Meera Joshi',
-    email: 'meera.j@example.com',
-    phone: '+91 9876543214',
-    tickets: [
-      { type: 'Child Entry', quantity: 3, price: 1500 }
-    ],
-    address: '56 Beach Road, Juhu, Mumbai 400049',
-    note: 'Multiple children from same family',
-    status: 'Verified',
-    verifiedBy: 'Admin',
-    ticketIds: ['TICKET-002-A', 'TICKET-002-B', 'TICKET-002-C']
-  },
-];
-
-const UTRStatusComponent = ({ status }: { status: string }) => {
-  switch (status) {
-    case 'Verified':
-      return (
-        <div className="flex items-center text-orange-500">
-          <CheckCircle2 className="h-4 w-4 mr-1" />
-          <span className="text-xs font-medium">Verified, Pending Dispatch</span>
-        </div>
-      );
-    case 'Dispatched':
-      return (
-        <div className="flex items-center text-green-500">
-          <Package className="h-4 w-4 mr-1" />
-          <span className="text-xs font-medium">Tickets Dispatched</span>
-        </div>
-      );
-    default:
-      return (
-        <div className="flex items-center text-gray-500">
-          <Clock className="h-4 w-4 mr-1" />
-          <span className="text-xs font-medium">Pending</span>
-        </div>
-      );
+  {
+    id: 'UTR123460',
+    customerName: 'Vikram Singh',
+    email: 'vikram.singh@example.com',
+    phone: '9876543214',
+    address: '202 Hill View, Hyderabad, Telangana 500001',
+    amount: 8000,
+    status: 'rejected',
+    date: '2023-05-12T16:10:00Z',
+    eventName: 'IPL: DC vs PBKS',
+    ticketCategory: 'Premium',
+    quantity: 4
   }
-};
+];
 
 const AdminUtrVerification = () => {
-  const [selectedUTR, setSelectedUTR] = useState<any>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isDispatchOpen, setIsDispatchOpen] = useState(false);
+  const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [verificationNote, setVerificationNote] = useState('');
-  const [selectedTab, setSelectedTab] = useState('pending');
-  const [trackingNumber, setTrackingNumber] = useState('');
-  const [isExpressDelivery, setIsExpressDelivery] = useState(false);
-
-  const filteredPendingUTRs = pendingUTRs.filter(utr => 
-    utr.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    utr.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    utr.event.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [selectedUtr, setSelectedUtr] = useState<any>(null);
   
-  const filteredVerifiedUTRs = verifiedUTRs.filter(utr => 
-    utr.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    utr.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    utr.event.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const viewDetails = (utr: any) => {
-    setSelectedUTR(utr);
-    setIsDetailsOpen(true);
-  };
-
-  const verifyUTR = () => {
-    // In a real app, this would update the UTR status in the database
+  // Filter and sort UTRs
+  const filteredUTRs = utrData
+    .filter(utr => {
+      if (filter !== 'all' && utr.status !== filter) return false;
+      
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        utr.id.toLowerCase().includes(searchLower) ||
+        utr.customerName.toLowerCase().includes(searchLower) ||
+        utr.email.toLowerCase().includes(searchLower) ||
+        utr.eventName.toLowerCase().includes(searchLower)
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  
+  const handleVerifyUtr = () => {
+    if (!selectedUtr) return;
+    
+    // In a real app, this would call an API to update the UTR status
     toast({
       title: "UTR Verified",
-      description: `UTR ${selectedUTR.id} has been verified successfully.`,
+      description: `UTR ${selectedUtr.id} has been verified successfully.`,
     });
-    setIsDetailsOpen(false);
+    
+    // Update the selected UTR's status (in a real app, this would be handled by reloading data from API)
+    setSelectedUtr({
+      ...selectedUtr,
+      status: 'verified'
+    });
   };
-
-  const rejectUTR = () => {
-    // In a real app, this would update the UTR status in the database
+  
+  const handleRejectUtr = () => {
+    if (!selectedUtr) return;
+    
     toast({
       title: "UTR Rejected",
-      description: `UTR ${selectedUTR.id} has been rejected.`,
+      description: `UTR ${selectedUtr.id} has been marked as rejected.`,
       variant: "destructive"
     });
-    setIsDetailsOpen(false);
-  };
-
-  const dispatchTickets = () => {
-    if (!trackingNumber) {
-      toast({
-        title: "Tracking number required",
-        description: "Please enter a tracking number for the shipment.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // In a real app, this would update the ticket status in the database
-    toast({
-      title: "Tickets Dispatched",
-      description: `Tickets for UTR ${selectedUTR.id} have been dispatched. Tracking: ${trackingNumber}`,
+    
+    setSelectedUtr({
+      ...selectedUtr,
+      status: 'rejected'
     });
-    setIsDispatchOpen(false);
   };
-
-  const startDispatch = (utr: any) => {
-    setSelectedUTR(utr);
-    setTrackingNumber('');
-    setIsExpressDelivery(false);
-    setIsDispatchOpen(true);
+  
+  const handleDispatchTicket = () => {
+    if (!selectedUtr) return;
+    
+    toast({
+      title: "Ticket Dispatched",
+      description: `Tickets for UTR ${selectedUtr.id} have been dispatched.`,
+    });
+    
+    setSelectedUtr({
+      ...selectedUtr,
+      status: 'dispatched'
+    });
   };
-
+  
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      case 'verified':
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800">Verified</Badge>;
+      case 'dispatched':
+        return <Badge variant="outline" className="bg-green-100 text-green-800">Dispatched</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-100 text-red-800">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+  
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -200,343 +174,185 @@ const AdminUtrVerification = () => {
         <div className="container mx-auto px-4">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">UTR Verification & Ticket Dispatch</h1>
-            <p className="text-gray-600 mt-1">Verify payment UTRs and dispatch tickets to customers</p>
+            <p className="text-gray-600 mt-1">Verify payments and dispatch tickets to customers</p>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-3 mb-6">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input 
-                placeholder="Search UTRs..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>UTR Submissions</CardTitle>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc')}
+                        className="text-gray-500"
+                      >
+                        {sortDirection === 'desc' ? (
+                          <ArrowDownAZ className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpAZ className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <CardDescription>Manage customer payments and ticket delivery</CardDescription>
+                  
+                  <div className="mt-4 flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-grow">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        placeholder="Search by UTR, name, email..."
+                        className="pl-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    
+                    <Tabs defaultValue="all" className="w-auto" onValueChange={setFilter}>
+                      <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="pending">Pending</TabsTrigger>
+                        <TabsTrigger value="verified">Verified</TabsTrigger>
+                        <TabsTrigger value="dispatched">Dispatched</TabsTrigger>
+                        <TabsTrigger value="rejected">Rejected</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>UTR ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Event</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUTRs.length > 0 ? (
+                        filteredUTRs.map((utr) => (
+                          <TableRow 
+                            key={utr.id}
+                            className={`cursor-pointer hover:bg-gray-50 ${selectedUtr?.id === utr.id ? 'bg-blue-50' : ''}`}
+                            onClick={() => setSelectedUtr(utr)}
+                          >
+                            <TableCell className="font-medium">{utr.id}</TableCell>
+                            <TableCell>{utr.customerName}</TableCell>
+                            <TableCell>{utr.eventName}</TableCell>
+                            <TableCell>₹{utr.amount}</TableCell>
+                            <TableCell>{getStatusBadge(utr.status)}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                            No UTR submissions found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
-            <div className="flex-1">
-              <Tabs 
-                defaultValue="pending" 
-                value={selectedTab}
-                onValueChange={setSelectedTab}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="pending" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    Pending ({pendingUTRs.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="verified" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    Verified ({verifiedUTRs.length})
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="pending" className="mt-0">
-                  <div className="bg-white rounded-md shadow-sm border overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-muted/50">
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">UTR Number</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Date</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Customer</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Event</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Amount</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {filteredPendingUTRs.length > 0 ? (
-                            filteredPendingUTRs.map((utr) => (
-                              <tr key={utr.id} className="hover:bg-muted/20">
-                                <td className="px-4 py-3 font-medium">{utr.id}</td>
-                                <td className="px-4 py-3 text-gray-600">{new Date(utr.date).toLocaleDateString()}</td>
-                                <td className="px-4 py-3">{utr.customerName}</td>
-                                <td className="px-4 py-3 max-w-xs truncate">{utr.event}</td>
-                                <td className="px-4 py-3 font-medium">₹{utr.amount.toLocaleString()}</td>
-                                <td className="px-4 py-3">
-                                  <Button variant="ghost" size="icon" onClick={() => viewDetails(utr)}>
-                                    <PenLine className="h-4 w-4" />
-                                    <span className="sr-only">View Details</span>
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                                No pending UTRs found
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+            
+            <div>
+              {selectedUtr ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>UTR Details</CardTitle>
+                    <CardDescription>UTR ID: {selectedUtr.id}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Customer Information</h3>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-sm">{selectedUtr.customerName}</p>
+                        <p className="text-sm text-gray-500">{selectedUtr.email}</p>
+                        <p className="text-sm text-gray-500">{selectedUtr.phone}</p>
+                      </div>
                     </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="verified" className="mt-0">
-                  <div className="bg-white rounded-md shadow-sm border overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-muted/50">
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">UTR Number</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Date</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Customer</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Event</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
-                            <th className="px-4 py-3 text-left font-medium text-gray-500">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {filteredVerifiedUTRs.length > 0 ? (
-                            filteredVerifiedUTRs.map((utr) => (
-                              <tr key={utr.id} className="hover:bg-muted/20">
-                                <td className="px-4 py-3 font-medium">{utr.id}</td>
-                                <td className="px-4 py-3 text-gray-600">{new Date(utr.date).toLocaleDateString()}</td>
-                                <td className="px-4 py-3">{utr.customerName}</td>
-                                <td className="px-4 py-3 max-w-xs truncate">{utr.event}</td>
-                                <td className="px-4 py-3">
-                                  <UTRStatusComponent status={utr.status} />
-                                </td>
-                                <td className="px-4 py-3">
-                                  {utr.status === 'Verified' ? (
-                                    <Button variant="ghost" size="sm" className="text-primary" onClick={() => startDispatch(utr)}>
-                                      <Send className="h-4 w-4 mr-1" />
-                                      Dispatch
-                                    </Button>
-                                  ) : (
-                                    <Button variant="ghost" size="sm" onClick={() => viewDetails(utr)}>
-                                      <PenLine className="h-4 w-4 mr-1" />
-                                      Details
-                                    </Button>
-                                  )}
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                                No verified UTRs found
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Delivery Address</h3>
+                      <p className="text-sm mt-2">{selectedUtr.address}</p>
                     </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Ticket Details</h3>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-sm"><span className="font-medium">Event:</span> {selectedUtr.eventName}</p>
+                        <p className="text-sm"><span className="font-medium">Category:</span> {selectedUtr.ticketCategory}</p>
+                        <p className="text-sm"><span className="font-medium">Quantity:</span> {selectedUtr.quantity}</p>
+                        <p className="text-sm"><span className="font-medium">Amount:</span> ₹{selectedUtr.amount}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                      <div className="mt-2">
+                        {getStatusBadge(selectedUtr.status)}
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 space-y-2">
+                      {selectedUtr.status === 'pending' && (
+                        <>
+                          <Button onClick={handleVerifyUtr} className="w-full">
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Verify Payment
+                          </Button>
+                          <Button onClick={handleRejectUtr} variant="destructive" className="w-full">
+                            <XCircle className="mr-2 h-4 w-4" />
+                            Reject Payment
+                          </Button>
+                        </>
+                      )}
+                      
+                      {selectedUtr.status === 'verified' && (
+                        <Button onClick={handleDispatchTicket} className="w-full">
+                          <Truck className="mr-2 h-4 w-4" />
+                          Dispatch Tickets
+                        </Button>
+                      )}
+                      
+                      {selectedUtr.status === 'rejected' && (
+                        <div className="bg-red-50 p-3 rounded-md text-sm text-red-800 flex items-start">
+                          <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 text-red-600" />
+                          <p>This payment has been rejected. No further action is required.</p>
+                        </div>
+                      )}
+                      
+                      {selectedUtr.status === 'dispatched' && (
+                        <div className="bg-green-50 p-3 rounded-md text-sm text-green-800 flex items-start">
+                          <CheckCircle className="h-5 w-5 mr-2 flex-shrink-0 text-green-600" />
+                          <p>Tickets have been dispatched to the customer. Delivery expected within 2 days.</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <Button variant="outline" className="w-full">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Generate Invoice
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    <p>Select a UTR submission to view details</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>
       </main>
-
-      {/* UTR Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>UTR Verification Details</DialogTitle>
-            <DialogDescription>
-              Review payment details and verify or reject this UTR.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedUTR && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">UTR Number</h3>
-                  <p className="text-base font-medium">{selectedUTR.id}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Payment Date</h3>
-                  <p className="text-base">{new Date(selectedUTR.date).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Amount</h3>
-                  <p className="text-base font-medium">₹{selectedUTR.amount.toLocaleString()}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Event</h3>
-                  <p className="text-base">{selectedUTR.event}</p>
-                </div>
-              </div>
-              
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Customer Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-xs font-medium text-gray-500">Name</h3>
-                    <p className="text-sm">{selectedUTR.customerName}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-medium text-gray-500">Contact</h3>
-                    <p className="text-sm">{selectedUTR.phone}</p>
-                    <p className="text-xs text-gray-500">{selectedUTR.email}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Ticket Details</h3>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-2 font-medium">Type</th>
-                      <th className="pb-2 font-medium">Quantity</th>
-                      <th className="pb-2 font-medium">Price</th>
-                      <th className="pb-2 font-medium">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedUTR.tickets.map((ticket: any, index: number) => (
-                      <tr key={index}>
-                        <td className="py-2">{ticket.type}</td>
-                        <td className="py-2">{ticket.quantity}</td>
-                        <td className="py-2">₹{ticket.price.toLocaleString()}</td>
-                        <td className="py-2 font-medium">₹{(ticket.quantity * ticket.price).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Delivery Address</h3>
-                <p className="text-sm">{selectedUTR.address}</p>
-              </div>
-              
-              {selectedUTR.note && (
-                <div className="bg-yellow-50 p-3 rounded-md border border-yellow-100">
-                  <h3 className="text-sm font-medium text-amber-800 flex items-center mb-1">
-                    <AlertTriangle className="h-4 w-4 mr-1" />
-                    Customer Note
-                  </h3>
-                  <p className="text-sm text-amber-700">{selectedUTR.note}</p>
-                </div>
-              )}
-              
-              {selectedUTR.status !== 'Dispatched' && (
-                <div className="border-t pt-4">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Verification Note (Optional)</h3>
-                  <Input 
-                    placeholder="Add notes about this verification..."
-                    value={verificationNote}
-                    onChange={(e) => setVerificationNote(e.target.value)}
-                  />
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-3 pt-4">
-                {selectedUTR.status ? (
-                  <Button onClick={() => setIsDetailsOpen(false)}>
-                    Close
-                  </Button>
-                ) : (
-                  <>
-                    <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button variant="destructive" onClick={rejectUTR} className="flex items-center">
-                      <X className="h-4 w-4 mr-1" />
-                      Reject UTR
-                    </Button>
-                    <Button onClick={verifyUTR} className="flex items-center">
-                      <Check className="h-4 w-4 mr-1" />
-                      Verify UTR
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Dispatch Tickets Dialog */}
-      <Dialog open={isDispatchOpen} onOpenChange={setIsDispatchOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Dispatch Tickets</DialogTitle>
-            <DialogDescription>
-              Enter shipping details to dispatch tickets to the customer.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedUTR && (
-            <div className="space-y-4">
-              <div className="bg-muted/30 p-3 rounded-md">
-                <div className="flex justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium">UTR: {selectedUTR.id}</h3>
-                    <p className="text-xs text-gray-500">{selectedUTR.event}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{selectedUTR.customerName}</p>
-                    <p className="text-xs text-gray-500">{selectedUTR.tickets.reduce((acc: number, t: any) => acc + t.quantity, 0)} tickets</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-1">Ticket IDs</h3>
-                <div className="bg-gray-50 p-3 rounded-md border text-sm mb-4">
-                  {selectedUTR.ticketIds ? (
-                    <ul className="space-y-1">
-                      {selectedUTR.ticketIds.map((id: string) => (
-                        <li key={id} className="text-gray-700">{id}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 italic">Ticket IDs will be generated on dispatch</p>
-                  )}
-                </div>
-                
-                <h3 className="text-sm font-medium text-gray-700 mb-1">Shipping Address</h3>
-                <div className="bg-gray-50 p-3 rounded-md border text-sm mb-4">
-                  <p className="text-gray-700">{selectedUTR.address}</p>
-                </div>
-                
-                <div className="mb-4">
-                  <label htmlFor="tracking" className="block text-sm font-medium text-gray-700 mb-1">
-                    Tracking Number
-                  </label>
-                  <Input 
-                    id="tracking"
-                    placeholder="Enter courier tracking number"
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2 mb-4">
-                  <Checkbox 
-                    id="express" 
-                    checked={isExpressDelivery}
-                    onCheckedChange={(checked) => setIsExpressDelivery(checked as boolean)}
-                  />
-                  <label
-                    htmlFor="express"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Express Delivery (1-day)
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button variant="outline" onClick={() => setIsDispatchOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={dispatchTickets} className="flex items-center">
-                  <Send className="h-4 w-4 mr-1" />
-                  Dispatch Tickets
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       <Footer />
     </div>
