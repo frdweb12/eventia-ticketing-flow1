@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { CircleDollarSign, TrendingUp, Calendar, Users, AlertCircle, Check } from 'lucide-react';
+import { CircleDollarSign, TrendingUp, Calendar, Users, AlertCircle, Check, CreditCard, Package, Ticket } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import { toast } from '@/hooks/use-toast';
 
@@ -77,6 +78,51 @@ const AdminDashboard = () => {
                 )}
               </AnimatedButton>
             </div>
+          </div>
+
+          {/* Admin Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Link to="/admin-events">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center">
+                    <Ticket className="h-5 w-5 mr-2 text-primary" />
+                    Manage Events
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">Add, edit or delete IPL matches and events</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/admin-upi">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center">
+                    <CreditCard className="h-5 w-5 mr-2 text-primary" />
+                    UPI Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">Manage UPI payment details and QR codes</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/admin-utr">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center">
+                    <Package className="h-5 w-5 mr-2 text-primary" />
+                    UTR Verification
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">Verify UTRs and dispatch tickets to customers</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
 
           {/* Key Metrics Cards */}

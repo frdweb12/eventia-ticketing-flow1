@@ -10,6 +10,10 @@ import EventDetail from "./pages/EventDetail";
 import Checkout from "./pages/Checkout";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminEventManagement from "./pages/AdminEventManagement";
+import AdminUpiManagement from "./pages/AdminUpiManagement";
+import AdminUtrVerification from "./pages/AdminUtrVerification";
+import ARVenuePreview from "./pages/ARVenuePreview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +31,10 @@ const App = () => (
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin-events" element={<AdminEventManagement />} />
+          <Route path="/admin-upi" element={<AdminUpiManagement />} />
+          <Route path="/admin-utr" element={<AdminUtrVerification />} />
+          <Route path="/venue-preview/:id" element={<ARVenuePreview />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
