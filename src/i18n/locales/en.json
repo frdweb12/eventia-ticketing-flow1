@@ -14,7 +14,14 @@
     "event": "event",
     "back": "Back",
     "bookNow": "Book Now",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "processing": "Processing...",
+    "copy": "Copy",
+    "copied": "Copied",
+    "retry": "Retry",
+    "tickets": "Tickets",
+    "ticket": "Ticket",
+    "backToEvents": "Back to Events"
   },
   "events": {
     "title": "Discover Events",
@@ -36,7 +43,38 @@
     "tickets": "Tickets",
     "quantity": "Quantity",
     "available": "available",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to Cart",
+    "proceedToPayment": "Proceed to Payment"
+  },
+  "payment": {
+    "title": "Payment",
+    "subtitle": "Complete your payment for {eventTitle}",
+    "upiPayment": "UPI Payment",
+    "scanQrOrPayManually": "Scan the QR code with any UPI app or pay manually",
+    "upiId": "UPI ID",
+    "payeeName": "Payee Name",
+    "amount": "Amount",
+    "transactionNote": "Transaction Note",
+    "enterUtr": "Enter UTR Number",
+    "utrDescription": "After making payment, enter the UTR (reference) number from your payment confirmation",
+    "utrLocation": "You can find the UTR in your payment app receipt or SMS",
+    "verifying": "Verifying...",
+    "submitUtr": "Submit UTR Number",
+    "errorLoading": "Error loading payment details",
+    "totalAmount": "Total Amount",
+    "tickets": "Tickets"
+  },
+  "confirmation": {
+    "bookingConfirmed": "Booking Confirmed!",
+    "collectAtVenue": "Please collect your physical tickets at the venue's box office",
+    "downloadPdf": "Download Ticket",
+    "shareTicket": "Share Ticket",
+    "bookingId": "Booking ID",
+    "tickets": "Tickets",
+    "ticket": "Ticket",
+    "importantInfo": "Important Information",
+    "bringIdAndQr": "Please bring a valid ID and this QR code to collect your tickets at the venue",
+    "pdfError": "Could not load ticket PDF. Please try again."
   },
   "navbar": {
     "events": "Events",

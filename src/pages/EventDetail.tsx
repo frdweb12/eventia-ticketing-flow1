@@ -32,6 +32,7 @@ const EventDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   const [activeTab, setActiveTab] = useState('info');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     // Find the event or match by ID
@@ -67,32 +68,34 @@ const EventDetail = () => {
       return;
     }
 
-    // For info tab tickets
-    if (activeTab === 'info') {
-      // Basic validation to prevent adding more tickets than available
-      if (quantity > selectedTicket.available) {
-        toast({
-          title: "Not enough tickets available",
-          description: `Only ${selectedTicket.available} tickets left for ${selectedTicket.category}.`,
-          variant: "destructive"
-        });
-        return;
-      }
+    setIsProcessing(true);
 
-      toast({
-        title: "Tickets added to cart",
-        description: `${quantity} ${selectedTicket.category} ticket(s) added to your cart.`,
+    // Simulate creating a booking on the server
+    setTimeout(() => {
+      setIsProcessing(false);
+      
+      // Create a mock booking ID
+      const mockBookingId = `BKG${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+      
+      // Calculate total amount
+      const totalAmount = activeTab === 'info' 
+        ? selectedTicket.price * quantity
+        : selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+      
+      // Navigate to payment page with booking details
+      navigate(`/payment/${mockBookingId}`, {
+        state: {
+          bookingDetails: {
+            eventTitle: event?.title,
+            eventDate: event?.date,
+            eventTime: event?.time,
+            venue: event?.venue,
+            amount: totalAmount,
+            ticketCount: activeTab === 'info' ? quantity : selectedSeats.length
+          }
+        }
       });
-    } else {
-      // For seat selection
-      toast({
-        title: "Seats reserved",
-        description: `${selectedSeats.length} seat(s) added to your cart.`,
-      });
-    }
-
-    // Redirect to checkout page
-    navigate('/checkout');
+    }, 1500);
   };
 
   if (!event) {
@@ -207,9 +210,22 @@ const EventDetail = () => {
                         </div>
                       </div>
 
-                      <Button className="w-full" onClick={handleAddToCart}>
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        {t('eventDetails.addToCart')}
+                      <Button 
+                        className="w-full" 
+                        onClick={handleAddToCart}
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                            {t('common.processing')}
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            {t('eventDetails.proceedToPayment')}
+                          </>
+                        )}
                       </Button>
                     </TabsContent>
                     <TabsContent value="seating">
@@ -219,6 +235,26 @@ const EventDetail = () => {
                         onSeatSelect={handleSeatSelect}
                         selectedSeats={selectedSeats}
                       />
+
+                      {selectedSeats.length > 0 && (
+                        <Button 
+                          className="w-full mt-4" 
+                          onClick={handleAddToCart}
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                              {t('common.processing')}
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              {t('eventDetails.proceedToPayment')}
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </TabsContent>
                   </Tabs>
                 </CardContent>

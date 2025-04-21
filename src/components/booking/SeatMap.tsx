@@ -100,7 +100,7 @@ const SeatMap: React.FC<SeatMapProps> = ({ venueId, sectionId, onSeatSelect, sel
       updatedSeats = selectedSeats.filter(s => s.id !== seat.id);
     } else {
       // Select the seat
-      const seatToAdd = { ...seat, status: 'selected' };
+      const seatToAdd: Seat = { ...seat, status: 'selected' };
       updatedSeats = [...selectedSeats, seatToAdd];
     }
 
