@@ -7,7 +7,7 @@ import Hero from '@/components/home/Hero';
 import FeaturedEvents from '@/components/home/FeaturedEvents';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, MapPin, QrCode, Truck, View3d, Timer } from 'lucide-react';
+import { CreditCard, MapPin, QrCode, Truck, Camera, Timer } from 'lucide-react';
 
 const Index = () => {
   const features = [
@@ -22,7 +22,7 @@ const Index = () => {
       description: "Physical tickets delivered to your doorstep within 2 days of confirmed payment."
     },
     {
-      icon: <View3d className="h-10 w-10 text-primary" />,
+      icon: <Camera className="h-10 w-10 text-primary" />,
       title: "AR Venue Preview",
       description: "Check your seat view in augmented reality before booking for the perfect match experience."
     },
@@ -115,7 +115,7 @@ const Index = () => {
               <div className="bg-white p-8 rounded-xl shadow-sm">
                 <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-4">
                   <div className="text-center p-6">
-                    <View3d className="h-16 w-16 text-primary/40 mx-auto mb-4" />
+                    <Camera className="h-16 w-16 text-primary/40 mx-auto mb-4" />
                     <p className="text-gray-500">AR Venue Preview Demo</p>
                   </div>
                 </div>
@@ -155,3 +155,4 @@ const Index = () => {
 };
 
 export default Index;
+
