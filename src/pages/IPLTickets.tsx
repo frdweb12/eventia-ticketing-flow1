@@ -93,8 +93,9 @@ const IPLTickets = () => {
                         <CardTitle className="text-xl">
                           {match.teams.team1.shortName} vs {match.teams.team2.shortName}
                         </CardTitle>
+                        {/* Removed matchNumber usage because it doesn't exist in IPLMatch */}
                         <Badge variant="outline" className="bg-primary/10">
-                          {t('ipl.match')} #{match.matchNumber}
+                          {t('ipl.match')}
                         </Badge>
                       </div>
                       <CardDescription>
@@ -158,3 +159,4 @@ const IPLTickets = () => {
 };
 
 export default IPLTickets;
+
