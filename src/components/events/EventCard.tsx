@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import { Event } from '@/data/eventsData';
 import AnimatedButton from '@/components/ui/AnimatedButton';
@@ -10,6 +11,8 @@ interface EventCardProps {
 }
 
 const EventCard = ({ event }: EventCardProps) => {
+  const { t } = useTranslation();
+  
   // Format date
   const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
     month: 'short',
@@ -26,7 +29,7 @@ const EventCard = ({ event }: EventCardProps) => {
           className="w-full h-48 object-cover"
         />
         <div className="absolute top-4 left-4 bg-white rounded-full px-3 py-1 text-xs font-medium text-gray-700">
-          {event.category}
+          {t(`categories.${event.category.toLowerCase().replace(/ & /g, 'And')}`)}
         </div>
       </div>
       
@@ -54,13 +57,13 @@ const EventCard = ({ event }: EventCardProps) => {
         
         <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
           <div>
-            <span className="text-sm text-gray-600">Starting from</span>
+            <span className="text-sm text-gray-600">{t('events.startingFrom')}</span>
             <div className="font-bold text-lg">
               ₹{Math.min(...event.ticketTypes.map(t => t.price))}
             </div>
           </div>
           <Link to={`/event/${event.id}`}>
-            <AnimatedButton size="sm">Book Now</AnimatedButton>
+            <AnimatedButton size="sm">{t('common.bookNow')}</AnimatedButton>
           </Link>
         </div>
       </div>

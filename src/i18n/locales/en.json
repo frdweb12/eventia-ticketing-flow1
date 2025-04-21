@@ -1,0 +1,47 @@
+
+{
+  "app": {
+    "name": "Eventia"
+  },
+  "common": {
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "noEventsFound": "No events found",
+    "tryDifferent": "Try different keywords or filter criteria",
+    "showing": "Showing",
+    "events": "events",
+    "event": "event",
+    "back": "Back",
+    "bookNow": "Book Now",
+    "viewAll": "View All"
+  },
+  "events": {
+    "title": "Discover Events",
+    "subtitle": "Browse and book tickets for the most exciting cricket and cultural events in your city",
+    "searchPlaceholder": "Search for events...",
+    "startingFrom": "Starting from",
+    "viewVenue": "View Venue in AR"
+  },
+  "categories": {
+    "cricket": "Cricket",
+    "festival": "Festival",
+    "workshop": "Workshop",
+    "gala": "Gala",
+    "kids": "Kids",
+    "conference": "Conference",
+    "meetAndGreet": "Meet & Greet"
+  },
+  "eventDetails": {
+    "tickets": "Tickets",
+    "quantity": "Quantity",
+    "available": "available",
+    "addToCart": "Add to Cart"
+  },
+  "navbar": {
+    "events": "Events",
+    "ipl": "IPL",
+    "venues": "Venues",
+    "admin": "Admin"
+  }
+}

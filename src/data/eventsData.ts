@@ -15,6 +15,8 @@ export interface Event {
   }[];
   image: string;
   featured: boolean;
+  posterImage?: string; // Higher quality poster image
+  venueMap?: string; // Optional venue map image
 }
 
 export const events: Event[] = [
@@ -39,7 +41,8 @@ export const events: Event[] = [
         available: 50
       }
     ],
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=800",
+    posterImage: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80&w=1200",
     featured: true
   },
   {
@@ -63,7 +66,9 @@ export const events: Event[] = [
         available: 500
       }
     ],
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1529326402984-d20cf031147c?auto=format&fit=crop&q=80&w=800",
+    posterImage: "https://images.unsplash.com/photo-1588928781149-a2c0fe846566?auto=format&fit=crop&q=80&w=1200",
+    venueMap: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&q=80&w=1200",
     featured: true
   },
   {
@@ -87,7 +92,8 @@ export const events: Event[] = [
         available: 200
       }
     ],
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1588497859490-85d1c17db96d?auto=format&fit=crop&q=80&w=800",
+    posterImage: "https://images.unsplash.com/photo-1624526267942-ab0c4566814c?auto=format&fit=crop&q=80&w=1200",
     featured: false
   },
   {
@@ -111,7 +117,8 @@ export const events: Event[] = [
         available: 20
       }
     ],
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1556155092-490a1ba16284?auto=format&fit=crop&q=80&w=800",
+    posterImage: "https://images.unsplash.com/photo-1519683109079-d5f539e1542f?auto=format&fit=crop&q=80&w=1200",
     featured: true
   },
   {
@@ -130,7 +137,8 @@ export const events: Event[] = [
         available: 150
       }
     ],
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&q=80&w=800",
+    posterImage: "https://images.unsplash.com/photo-1602901248692-06c8935adac0?auto=format&fit=crop&q=80&w=1200",
     featured: false
   },
   {
@@ -154,7 +162,8 @@ export const events: Event[] = [
         available: 100
       }
     ],
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1579389083078-4e7018379f7e?auto=format&fit=crop&q=80&w=800",
+    posterImage: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&q=80&w=1200",
     featured: false
   }
 ];

@@ -1,0 +1,47 @@
+
+{
+  "app": {
+    "name": "इवेंटिया"
+  },
+  "common": {
+    "search": "खोज",
+    "filter": "फ़िल्टर",
+    "all": "सभी",
+    "noEventsFound": "कोई इवेंट नहीं मिला",
+    "tryDifferent": "अलग कीवर्ड या फिल्टर मानदंड आज़माएँ",
+    "showing": "दिखा रहा है",
+    "events": "इवेंट्स",
+    "event": "इवेंट",
+    "back": "वापस",
+    "bookNow": "अभी बुक करें",
+    "viewAll": "सभी देखें"
+  },
+  "events": {
+    "title": "इवेंट्स खोजें",
+    "subtitle": "अपने शहर में होने वाले सबसे रोमांचक क्रिकेट और सांस्कृतिक कार्यक्रमों के लिए टिकट ब्राउज़ करें और बुक करें",
+    "searchPlaceholder": "इवेंट्स के लिए खोजें...",
+    "startingFrom": "शुरुआती कीमत",
+    "viewVenue": "AR में वेन्यू देखें"
+  },
+  "categories": {
+    "cricket": "क्रिकेट",
+    "festival": "त्योहार",
+    "workshop": "वर्कशॉप",
+    "gala": "गाला",
+    "kids": "बच्चे",
+    "conference": "कॉन्फ्रेंस",
+    "meetAndGreet": "मीट एंड ग्रीट"
+  },
+  "eventDetails": {
+    "tickets": "टिकट",
+    "quantity": "मात्रा",
+    "available": "उपलब्ध",
+    "addToCart": "कार्ट में जोड़ें"
+  },
+  "navbar": {
+    "events": "इवेंट्स",
+    "ipl": "आईपीएल",
+    "venues": "वेन्यू",
+    "admin": "एडमिन"
+  }
+}
