@@ -1,169 +1,222 @@
 
+export interface TicketType {
+  category: string;
+  price: number;
+  available: number;
+  capacity: number; // Total capacity for calculating availability percentage
+}
+
 export interface Event {
   id: string;
   title: string;
   description: string;
-  category: string;
-  venue: string;
   date: string;
   time: string;
+  venue: string;
+  category: string;
   duration: string;
-  ticketTypes: {
-    category: string;
-    price: number;
-    available: number;
-  }[];
   image: string;
-  featured: boolean;
-  posterImage?: string; // Higher quality poster image
-  venueMap?: string; // Optional venue map image
+  posterImage?: string;
+  ticketTypes: TicketType[];
 }
 
 export const events: Event[] = [
   {
-    id: "event-2025-01",
-    title: "Cricket Legends Meet & Greet",
-    description: "Meet your favorite cricket legends in person! Get autographs, take photos, and listen to their stories from the field.",
-    category: "Meet & Greet",
-    venue: "The Cricket Club, Mumbai",
-    date: "2025-04-05",
-    time: "14:00",
-    duration: "4 hours",
+    id: "evt1",
+    title: "ICC T20 World Cup Final",
+    description: "Experience the thrilling climax of the T20 World Cup as the top teams battle for the championship trophy.",
+    date: "2025-06-15",
+    time: "19:00",
+    venue: "Narendra Modi Stadium, Ahmedabad",
+    category: "Cricket",
+    duration: "3-4 hours",
+    image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1605&q=80",
+    posterImage: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1494&q=80",
     ticketTypes: [
+      {
+        category: "VIP Box",
+        price: 15000,
+        available: 10,
+        capacity: 50
+      },
+      {
+        category: "Premium Stand",
+        price: 8000,
+        available: 150,
+        capacity: 500
+      },
+      {
+        category: "General Stand",
+        price: 3500,
+        available: 2000,
+        capacity: 5000
+      }
+    ]
+  },
+  {
+    id: "evt2",
+    title: "Coldplay World Tour",
+    description: "Join Coldplay for an unforgettable night as they bring their Music of the Spheres World Tour to India.",
+    date: "2025-06-28",
+    time: "20:00",
+    venue: "DY Patil Stadium, Mumbai",
+    category: "Festival",
+    duration: "2-3 hours",
+    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    posterImage: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    ticketTypes: [
+      {
+        category: "Front Row",
+        price: 12000,
+        available: 5,
+        capacity: 100
+      },
+      {
+        category: "Gold Circle",
+        price: 7500,
+        available: 200,
+        capacity: 1000
+      },
+      {
+        category: "Silver Section",
+        price: 4000,
+        available: 1000,
+        capacity: 3000
+      }
+    ]
+  },
+  {
+    id: "evt3",
+    title: "Web3 & AI Summit",
+    description: "Connect with industry leaders, developers, and enthusiasts to explore the future of Web3 and AI technologies.",
+    date: "2025-07-10",
+    time: "09:00",
+    venue: "Bangalore International Exhibition Centre",
+    category: "Conference",
+    duration: "2 days",
+    image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1632&q=80",
+    posterImage: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    ticketTypes: [
+      {
+        category: "VIP Access",
+        price: 9000,
+        available: 50,
+        capacity: 100
+      },
+      {
+        category: "Full Conference",
+        price: 5000,
+        available: 250,
+        capacity: 500
+      },
+      {
+        category: "Single Day",
+        price: 3000,
+        available: 400,
+        capacity: 800
+      }
+    ]
+  },
+  {
+    id: "evt4",
+    title: "Holi Color Festival",
+    description: "Celebrate the festival of colors with music, dance, and traditional festivities in a grand carnival atmosphere.",
+    date: "2025-03-15",
+    time: "10:00",
+    venue: "Jawaharlal Nehru Stadium, Delhi",
+    category: "Festival",
+    duration: "8 hours",
+    image: "https://images.unsplash.com/photo-1610809027249-86c649feacd5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    posterImage: "https://images.unsplash.com/photo-1668541621748-d6c5ad3242e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    ticketTypes: [
+      {
+        category: "Premium Experience",
+        price: 4000,
+        available: 100,
+        capacity: 300
+      },
       {
         category: "Standard Entry",
         price: 2000,
-        available: 200
+        available: 500,
+        capacity: 1500
       },
       {
-        category: "VIP Experience",
-        price: 5000,
-        available: 50
-      }
-    ],
-    image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=800",
-    posterImage: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80&w=1200",
-    featured: true
-  },
-  {
-    id: "event-2025-02",
-    title: "IPL Fan Festival",
-    description: "The ultimate celebration for IPL fans with music, food, games, merchandise, and surprise appearances by cricket stars.",
-    category: "Festival",
-    venue: "Marine Drive, Mumbai",
-    date: "2025-04-10",
-    time: "12:00",
-    duration: "8 hours",
-    ticketTypes: [
-      {
-        category: "Day Pass",
-        price: 500,
-        available: 2000
-      },
-      {
-        category: "Premium Pass",
-        price: 1200,
-        available: 500
-      }
-    ],
-    image: "https://images.unsplash.com/photo-1529326402984-d20cf031147c?auto=format&fit=crop&q=80&w=800",
-    posterImage: "https://images.unsplash.com/photo-1588928781149-a2c0fe846566?auto=format&fit=crop&q=80&w=1200",
-    venueMap: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&q=80&w=1200",
-    featured: true
-  },
-  {
-    id: "event-2025-03",
-    title: "Cricket Masterclass with Rahul Dravid",
-    description: "Learn the techniques and mindset of cricket from one of the greatest batsmen of all time.",
-    category: "Workshop",
-    venue: "National Cricket Academy, Bangalore",
-    date: "2025-04-15",
-    time: "09:00",
-    duration: "6 hours",
-    ticketTypes: [
-      {
-        category: "Participant",
-        price: 4000,
-        available: 100
-      },
-      {
-        category: "Observer",
-        price: 1500,
-        available: 200
-      }
-    ],
-    image: "https://images.unsplash.com/photo-1588497859490-85d1c17db96d?auto=format&fit=crop&q=80&w=800",
-    posterImage: "https://images.unsplash.com/photo-1624526267942-ab0c4566814c?auto=format&fit=crop&q=80&w=1200",
-    featured: false
-  },
-  {
-    id: "event-2025-04",
-    title: "IPL Awards Night",
-    description: "A glamorous evening celebrating the best performers and moments from the IPL 2025 season.",
-    category: "Gala",
-    venue: "Grand Hyatt, Mumbai",
-    date: "2025-05-28",
-    time: "20:00",
-    duration: "4 hours",
-    ticketTypes: [
-      {
-        category: "Standard Seat",
-        price: 7500,
-        available: 300
-      },
-      {
-        category: "Premium Table",
-        price: 15000,
-        available: 20
-      }
-    ],
-    image: "https://images.unsplash.com/photo-1556155092-490a1ba16284?auto=format&fit=crop&q=80&w=800",
-    posterImage: "https://images.unsplash.com/photo-1519683109079-d5f539e1542f?auto=format&fit=crop&q=80&w=1200",
-    featured: true
-  },
-  {
-    id: "event-2025-05",
-    title: "T20 Cricket Clinic for Kids",
-    description: "A fun and educational cricket clinic for children aged 8-15, taught by professional coaches.",
-    category: "Kids",
-    venue: "DY Patil Sports Stadium, Navi Mumbai",
-    date: "2025-04-25",
-    time: "08:00",
-    duration: "5 hours",
-    ticketTypes: [
-      {
-        category: "Child Entry",
-        price: 1500,
-        available: 150
-      }
-    ],
-    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&q=80&w=800",
-    posterImage: "https://images.unsplash.com/photo-1602901248692-06c8935adac0?auto=format&fit=crop&q=80&w=1200",
-    featured: false
-  },
-  {
-    id: "event-2025-06",
-    title: "Cricket Analytics Conference",
-    description: "Explore how data and analytics are transforming cricket strategy, training, and player development.",
-    category: "Conference",
-    venue: "ITC Gardenia, Bangalore",
-    date: "2025-05-10",
-    time: "09:30",
-    duration: "2 days",
-    ticketTypes: [
-      {
-        category: "Professional Pass",
+        category: "Group Pass (4 people)",
         price: 6000,
-        available: 200
+        available: 100,
+        capacity: 200
+      }
+    ]
+  },
+  {
+    id: "evt5",
+    title: "AR Rahman Live in Concert",
+    description: "Experience the musical genius of AR Rahman performing his greatest hits with a full orchestra.",
+    date: "2025-05-22",
+    time: "19:30",
+    venue: "Indira Gandhi Arena, Delhi",
+    category: "Festival",
+    duration: "3 hours",
+    image: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    posterImage: "https://images.unsplash.com/photo-1603186741833-4cfa8b8aa393?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
+    ticketTypes: [
+      {
+        category: "VVIP",
+        price: 10000,
+        available: 30,
+        capacity: 50
       },
       {
-        category: "Student Pass",
-        price: 2500,
-        available: 100
+        category: "VIP",
+        price: 7000,
+        available: 150,
+        capacity: 300
+      },
+      {
+        category: "Gold",
+        price: 5000,
+        available: 300,
+        capacity: 600
+      },
+      {
+        category: "Silver",
+        price: 3000,
+        available: 500,
+        capacity: 1000
       }
-    ],
-    image: "https://images.unsplash.com/photo-1579389083078-4e7018379f7e?auto=format&fit=crop&q=80&w=800",
-    posterImage: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&q=80&w=1200",
-    featured: false
+    ]
+  },
+  {
+    id: "evt6",
+    title: "Digital Marketing Masterclass",
+    description: "Learn advanced digital marketing strategies from industry experts in this intensive workshop.",
+    date: "2025-06-05",
+    time: "10:00",
+    venue: "Taj Lands End, Mumbai",
+    category: "Workshop",
+    duration: "6 hours",
+    image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    posterImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    ticketTypes: [
+      {
+        category: "Professional",
+        price: 6000,
+        available: 25,
+        capacity: 50
+      },
+      {
+        category: "Standard",
+        price: 4000,
+        available: 50,
+        capacity: 100
+      },
+      {
+        category: "Student",
+        price: 2000,
+        available: 25,
+        capacity: 50
+      }
+    ]
   }
 ];

@@ -18,6 +18,9 @@ import AdminUtrVerification from "./pages/AdminUtrVerification";
 import ARVenuePreview from "./pages/ARVenuePreview";
 import NotFound from "./pages/NotFound";
 
+// Import for language configuration
+import "./i18n/config";
+
 const queryClient = new QueryClient();
 
 const App = () => (
