@@ -16,6 +16,7 @@ import AdminEventManagement from "./pages/AdminEventManagement";
 import AdminUpiManagement from "./pages/AdminUpiManagement";
 import AdminUtrVerification from "./pages/AdminUtrVerification";
 import ARVenuePreview from "./pages/ARVenuePreview";
+import IPLTickets from "./pages/IPLTickets";
 import NotFound from "./pages/NotFound";
 
 // Import for language configuration
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/payment/:bookingId" element={<Payment />} />
           <Route path="/confirmation/:bookingId" element={<Confirmation />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/ipl-tickets" element={<IPLTickets />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/admin-events" element={<AdminEventManagement />} />

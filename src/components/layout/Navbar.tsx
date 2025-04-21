@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 import { Menu, X, Ticket, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -19,27 +21,24 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <Ticket className="h-8 w-8 text-primary" />
-            <span className="ml-2 text-xl font-bold text-primary">Eventia</span>
+            <span className="ml-2 text-xl font-bold text-primary">{t('app.name')}</span>
           </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
             <Link to="/" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-              Home
+              {t('common.event')}
             </Link>
             <Link to="/events" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-              Events
+              {t('navbar.events')}
             </Link>
             <Link to="/ipl-tickets" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-              IPL Tickets
-            </Link>
-            <Link to="/about" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-              About
+              {t('navbar.ipl')}
             </Link>
             <Link to="/admin-login">
               <Button variant="outline" size="sm" className="ml-4 flex items-center">
                 <User className="h-4 w-4 mr-2" />
-                Admin
+                {t('navbar.admin')}
               </Button>
             </Link>
           </div>
@@ -69,31 +68,25 @@ const Navbar = () => {
             className="block text-gray-700 hover:text-primary px-3 py-2 rounded-md"
             onClick={() => setIsOpen(false)}
           >
-            Home
+            {t('common.event')}
           </Link>
           <Link to="/events" 
             className="block text-gray-700 hover:text-primary px-3 py-2 rounded-md"
             onClick={() => setIsOpen(false)}
           >
-            Events
+            {t('navbar.events')}
           </Link>
           <Link to="/ipl-tickets" 
             className="block text-gray-700 hover:text-primary px-3 py-2 rounded-md"
             onClick={() => setIsOpen(false)}
           >
-            IPL Tickets
-          </Link>
-          <Link to="/about" 
-            className="block text-gray-700 hover:text-primary px-3 py-2 rounded-md"
-            onClick={() => setIsOpen(false)}
-          >
-            About
+            {t('navbar.ipl')}
           </Link>
           <div className="mt-4 px-3">
             <Link to="/admin-login" onClick={() => setIsOpen(false)}>
               <Button variant="outline" className="w-full justify-start">
                 <User className="h-4 w-4 mr-2" />
-                Admin Login
+                {t('navbar.admin')}
               </Button>
             </Link>
           </div>
