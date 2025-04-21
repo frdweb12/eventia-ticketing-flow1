@@ -1,4 +1,3 @@
-
 export interface TicketType {
   category: string;
   price: number;
@@ -18,7 +17,10 @@ export interface Event {
   image: string;
   posterImage?: string;
   ticketTypes: TicketType[];
+  featured?: boolean;  // Added optional featured flag
 }
+
+// Update events with featured flags
 
 export const events: Event[] = [
   {
@@ -51,7 +53,8 @@ export const events: Event[] = [
         available: 2000,
         capacity: 5000
       }
-    ]
+    ],
+    featured: true
   },
   {
     id: "evt2",
@@ -83,7 +86,8 @@ export const events: Event[] = [
         available: 1000,
         capacity: 3000
       }
-    ]
+    ],
+    featured: true
   },
   {
     id: "evt3",
@@ -115,7 +119,8 @@ export const events: Event[] = [
         available: 400,
         capacity: 800
       }
-    ]
+    ],
+    featured: true
   },
   {
     id: "evt4",
@@ -147,7 +152,8 @@ export const events: Event[] = [
         available: 100,
         capacity: 200
       }
-    ]
+    ],
+    featured: false
   },
   {
     id: "evt5",
@@ -185,7 +191,8 @@ export const events: Event[] = [
         available: 500,
         capacity: 1000
       }
-    ]
+    ],
+    featured: false
   },
   {
     id: "evt6",
@@ -197,7 +204,7 @@ export const events: Event[] = [
     category: "Workshop",
     duration: "6 hours",
     image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    posterImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    posterImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
     ticketTypes: [
       {
         category: "Professional",
@@ -217,6 +224,7 @@ export const events: Event[] = [
         available: 25,
         capacity: 50
       }
-    ]
+    ],
+    featured: true
   }
 ];
