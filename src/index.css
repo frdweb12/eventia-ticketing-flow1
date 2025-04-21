@@ -46,13 +46,13 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 225 9% 9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 228 9% 11%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 228 9% 11%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 217.2 91.2% 59.8%;
@@ -82,7 +82,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors;
   }
 
   .ticket-shape {
@@ -138,5 +138,34 @@
 
   .scale-up-hover:hover {
     @apply transform scale-105;
+  }
+  
+  /* Mobile tap effect */
+  .tap-highlight {
+    @apply active:bg-primary/10 transition-colors;
+  }
+  
+  /* Glass card effect */
+  .glass-card {
+    @apply bg-background/80 backdrop-blur-lg border border-border/50 shadow-sm;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Interactive hover effects for buttons and links */
+  .hover-slide-right {
+    @apply relative overflow-hidden;
+  }
+  
+  .hover-slide-right::after {
+    @apply content-[''] absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 ease-in-out;
+  }
+  
+  .hover-slide-right:hover::after {
+    @apply w-full;
   }
 }
