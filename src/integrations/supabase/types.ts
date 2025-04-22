@@ -30,6 +30,89 @@ export type Database = {
         }
         Relationships: []
       }
+      bookings: {
+        Row: {
+          booking_date: string
+          created_at: string
+          discount_applied: number | null
+          event_id: string
+          final_amount: number
+          id: string
+          payment_id: string | null
+          seats: Json
+          status: string
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          booking_date?: string
+          created_at?: string
+          discount_applied?: number | null
+          event_id: string
+          final_amount: number
+          id?: string
+          payment_id?: string | null
+          seats: Json
+          status: string
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string
+          discount_applied?: number | null
+          event_id?: string
+          final_amount?: number
+          id?: string
+          payment_id?: string | null
+          seats?: Json
+          status?: string
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      delivery_details: {
+        Row: {
+          address: string
+          booking_id: string
+          city: string
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          pincode: string
+        }
+        Insert: {
+          address: string
+          booking_id: string
+          city: string
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          pincode: string
+        }
+        Update: {
+          address?: string
+          booking_id?: string
+          city?: string
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          pincode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_details_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discounts: {
         Row: {
           amount: number

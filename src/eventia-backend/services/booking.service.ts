@@ -1,19 +1,26 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Booking, DeliveryDetails } from '../models';
+
+type BookingRow = Database['public']['Tables']['bookings']['Row'];
+type BookingInsert = Database['public']['Tables']['bookings']['Insert'];
+type DeliveryDetailsRow = Database['public']['Tables']['delivery_details']['Row'];
+type DeliveryDetailsInsert = Database['public']['Tables']['delivery_details']['Insert'];
 
 export const bookingService = {
   /**
    * Create a new booking
    */
-  async createBooking(booking: Omit<Booking, 'id' | 'created_at'>) {
+  async createBooking(booking: Omit<BookingInsert, 'id' | 'created_at'>) {
     const { data, error } = await supabase
       .from('bookings')
       .insert([booking])
-      .select();
+      .select()
+      .single();
       
     if (error) throw error;
-    return data[0] as Booking;
+    return data as Booking;
   },
   
   /**
@@ -52,23 +59,25 @@ export const bookingService = {
       .from('bookings')
       .update({ status })
       .eq('id', id)
-      .select();
+      .select()
+      .single();
       
     if (error) throw error;
-    return data[0] as Booking;
+    return data as Booking;
   },
   
   /**
    * Add delivery details to a booking
    */
-  async addDeliveryDetails(deliveryDetails: Omit<DeliveryDetails, 'id' | 'created_at'>) {
+  async addDeliveryDetails(deliveryDetails: Omit<DeliveryDetailsInsert, 'id' | 'created_at'>) {
     const { data, error } = await supabase
       .from('delivery_details')
       .insert([deliveryDetails])
-      .select();
+      .select()
+      .single();
       
     if (error) throw error;
-    return data[0] as DeliveryDetails;
+    return data as DeliveryDetails;
   },
   
   /**
