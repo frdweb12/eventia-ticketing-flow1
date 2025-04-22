@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,9 @@ import { toast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { createClient } from '@supabase/supabase-js';
+import QRCodeGenerator from '@/components/payment/QRCodeGenerator';
+import { usePaymentSettings } from '@/hooks/use-payment-settings';
 
 // Form schema for UPI VPA validation
 const upiSchema = z.object({
@@ -18,6 +21,8 @@ const upiSchema = z.object({
   vpa: z.string()
     .min(5, "UPI VPA must be at least 5 characters")
     .regex(/^[a-zA-Z0-9.\-_]+@[a-zA-Z]+$/, "Invalid UPI VPA format (e.g., example@bank)"),
+  discountCode: z.string().optional(),
+  discountAmount: z.coerce.number().min(0, "Discount cannot be negative").optional(),
   description: z.string().optional(),
 });
 
@@ -25,24 +30,74 @@ type UpiFormValues = z.infer<typeof upiSchema>;
 
 const AdminUpiManagement = () => {
   const [isCopied, setIsCopied] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleString());
+  
+  // Initialize Supabase client
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  
+  // Get current payment settings
+  const { settings, isLoading, error, refreshSettings } = usePaymentSettings();
   
   const form = useForm<UpiFormValues>({
     resolver: zodResolver(upiSchema),
     defaultValues: {
       merchantName: 'Eventia Tickets',
-      vpa: 'eventia@sbi',
+      vpa: '',
+      discountCode: '',
+      discountAmount: 0,
       description: 'Official payment account for Eventia ticket purchases',
     }
   });
 
-  const onSubmit = (data: UpiFormValues) => {
-    // In a real application, this would update the UPI details in the database
-    toast({
-      title: "UPI details updated",
-      description: "Your UPI VPA has been successfully updated.",
-    });
-    setLastUpdated(new Date().toLocaleString());
+  // When settings are loaded, update the form
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        merchantName: 'Eventia Tickets',
+        vpa: settings.upiVPA,
+        discountCode: settings.discountCode || '',
+        discountAmount: settings.discountAmount || 0,
+        description: 'Official payment account for Eventia ticket purchases',
+      });
+      
+      setLastUpdated(new Date(settings.updatedAt).toLocaleString());
+    }
+  }, [settings, form]);
+
+  const onSubmit = async (data: UpiFormValues) => {
+    try {
+      // In a real application, this would update the UPI details in the database
+      const { error } = await supabase
+        .from('payment_settings')
+        .insert({
+          upi_vpa: data.vpa,
+          merchant_name: data.merchantName,
+          discount_code: data.discountCode || null,
+          discount_amount: data.discountAmount || 0,
+          description: data.description || null,
+          updated_at: new Date().toISOString()
+        });
+        
+      if (error) throw error;
+      
+      toast({
+        title: "UPI details updated",
+        description: "Your UPI VPA has been successfully updated.",
+      });
+      
+      setLastUpdated(new Date().toLocaleString());
+      refreshSettings();
+    } catch (err) {
+      console.error('Error updating UPI settings:', err);
+      toast({
+        title: "Error updating settings",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
   };
 
   const copyToClipboard = () => {
@@ -60,11 +115,29 @@ const AdminUpiManagement = () => {
   };
 
   const refreshQR = () => {
-    toast({
-      title: "QR Code refreshed",
-      description: "The QR code has been regenerated with the current UPI VPA.",
-    });
+    setIsRefreshing(true);
+    refreshSettings();
+    
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast({
+        title: "QR Code refreshed",
+        description: "The QR code has been regenerated with the current UPI VPA.",
+      });
+    }, 1000);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-grow bg-gray-50 pt-16 pb-12 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -134,6 +207,47 @@ const AdminUpiManagement = () => {
                         )}
                       />
                       
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="discountCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Discount Code</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., WELCOME50" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Current active discount code
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="discountAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Discount Amount (₹)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="0" 
+                                  placeholder="e.g., 50" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Amount to discount from total
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
                       <FormField
                         control={form.control}
                         name="description"
@@ -167,29 +281,37 @@ const AdminUpiManagement = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Shield className="h-5 w-5 mr-2 text-primary" />
-                    UPI QR Code
+                    UPI QR Code Preview
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center">
-                  <div className="bg-white p-4 rounded-md shadow-sm border w-48 h-48 flex items-center justify-center mb-4">
-                    {/* In a real app, this would be a dynamically generated QR code */}
-                    <div className="text-center">
-                      <div className="border-4 border-primary/20 w-32 h-32 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <p className="text-xs text-gray-500">UPI QR Code</p>
-                      </div>
-                      <p className="text-xs text-gray-500 truncate">
-                        {form.getValues('vpa')}
-                      </p>
+                  {form.getValues('vpa') ? (
+                    <div className="mb-4">
+                      <QRCodeGenerator 
+                        upiVPA={form.getValues('vpa')}
+                        amount={100}
+                        payeeName={form.getValues('merchantName')}
+                        transactionNote="Sample Transaction"
+                      />
                     </div>
-                  </div>
+                  ) : (
+                    <div className="border-4 border-primary/20 w-32 h-32 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                      <p className="text-xs text-gray-500">Enter UPI VPA first</p>
+                    </div>
+                  )}
                   
                   <Button 
                     variant="outline" 
                     size="sm"
                     className="w-full mb-2"
                     onClick={refreshQR}
+                    disabled={isRefreshing}
                   >
-                    <RefreshCw className="h-3 w-3 mr-2" />
+                    {isRefreshing ? (
+                      <div className="h-3 w-3 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    ) : (
+                      <RefreshCw className="h-3 w-3 mr-2" />
+                    )}
                     Refresh QR Code
                   </Button>
                   

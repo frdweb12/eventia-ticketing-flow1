@@ -15,6 +15,7 @@ import EventDetail from "./pages/EventDetail";
 import Payment from "./pages/Payment";
 import Confirmation from "./pages/Confirmation";
 import Checkout from "./pages/Checkout";
+import DeliveryDetails from "./pages/DeliveryDetails";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminEventManagement from "./pages/AdminEventManagement";
@@ -52,6 +53,11 @@ const AnimatedRoutes = () => {
         <Route path="/event/:id" element={
           <PageTransition>
             <EventDetail />
+          </PageTransition>
+        } />
+        <Route path="/delivery-details" element={
+          <PageTransition>
+            <DeliveryDetails />
           </PageTransition>
         } />
         <Route path="/payment/:bookingId" element={
@@ -120,20 +126,18 @@ const AnimatedRoutes = () => {
 };
 
 const App = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AnimatedRoutes />
-            <BottomNav />
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider defaultTheme="system">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatedRoutes />
+          <BottomNav />
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
 );
 
 export default App;

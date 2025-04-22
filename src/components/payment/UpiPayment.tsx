@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Copy, Check, CreditCard, Clipboard } from 'lucide-react';
+import { Clipboard, CreditCard } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import QRCodeGenerator from './QRCodeGenerator';
+import { usePaymentSettings } from '@/hooks/use-payment-settings';
 
 interface UpiPaymentProps {
   bookingId: string;
@@ -13,83 +15,30 @@ interface UpiPaymentProps {
   onUtrSubmit: (utr: string) => void;
 }
 
-interface PaymentData {
-  qrCode: string;
-  vpa: string;
-  payeeName: string;
-  amount: number;
-  transactionNote: string;
-}
-
 const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit }) => {
   const { t } = useTranslation();
-  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [utrNumber, setUtrNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPaymentLink = async () => {
-      try {
-        setLoading(true);
-        // In a real app, this would be an API call
-        // const response = await fetch(`/api/payments/links/${bookingId}`);
-        // const data = await response.json();
-        
-        // For now, mock the response
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const mockData: PaymentData = {
-          qrCode: 'https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg',
-          vpa: 'eventia@upi',
-          payeeName: 'Eventia Tickets Pvt Ltd',
-          amount: amount,
-          transactionNote: `Ticket-${bookingId}`
-        };
-        
-        setPaymentData(mockData);
-      } catch (error) {
-        console.error('Error fetching payment link:', error);
-        toast({
-          title: "Error fetching payment details",
-          description: "Please try again or contact support",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPaymentLink();
-  }, [bookingId, amount]);
-
-  const handleCopyVpa = () => {
-    if (!paymentData) return;
-    
-    navigator.clipboard.writeText(paymentData.vpa)
-      .then(() => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-        toast({
-          title: "UPI ID copied",
-          description: `${paymentData.vpa} copied to clipboard`,
-        });
-      })
-      .catch(err => {
-        console.error('Failed to copy text: ', err);
-        toast({
-          title: "Failed to copy",
-          description: "Please try again",
-          variant: "destructive"
-        });
-      });
+  
+  // Fetch payment settings with real-time updates enabled
+  const { settings, isLoading, error } = usePaymentSettings(true);
+  
+  // Apply discount if available
+  const calculateDiscountedAmount = () => {
+    if (settings?.discountAmount && settings.discountAmount > 0) {
+      return Math.max(0, amount - settings.discountAmount);
+    }
+    return amount;
   };
+  
+  const finalAmount = calculateDiscountedAmount();
+  const transactionNote = `Eventia-${bookingId}`;
 
   const handleUtrSubmit = () => {
     if (!utrNumber.trim()) {
       toast({
-        title: "UTR number is required",
-        description: "Please enter the UTR number from your payment receipt",
+        title: t('payment.utrRequired'),
+        description: t('payment.utrDescription'),
         variant: "destructive"
       });
       return;
@@ -97,26 +46,43 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
 
     setIsSubmitting(true);
     
-    // In a real app, call the API to submit UTR
-    // Example: 
-    // fetch(`/api/bookings/${bookingId}/submit-utr`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ utr: utrNumber })
-    // })
-
-    // For now, simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onUtrSubmit(utrNumber);
-      toast({
-        title: "UTR submitted successfully",
-        description: "Your ticket will be confirmed shortly",
-      });
-    }, 1500);
+    // In a real application, this would call the Supabase function
+    const saveUtr = async () => {
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        const { error } = await supabase
+          .from('booking_payments')
+          .insert({
+            booking_id: bookingId,
+            utr_number: utrNumber,
+            amount: finalAmount,
+            status: 'pending',
+            created_at: new Date().toISOString()
+          });
+          
+        if (error) throw error;
+        
+        // Call the callback
+        onUtrSubmit(utrNumber);
+        
+      } catch (error) {
+        console.error('Error saving UTR:', error);
+        toast({
+          title: "Error processing payment",
+          description: "Please try again or contact support",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+      }
+    };
+    
+    saveUtr();
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -124,7 +90,7 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
     );
   }
 
-  if (!paymentData) {
+  if (error || !settings) {
     return (
       <div className="text-center p-4">
         <p className="text-red-500">{t('payment.errorLoading')}</p>
@@ -148,50 +114,47 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* QR Code */}
           <div className="bg-gray-50 p-4 rounded-md flex justify-center">
-            <img 
-              src={paymentData.qrCode} 
-              alt="UPI QR Code" 
-              className="h-64 w-64 object-contain"
+            <QRCodeGenerator 
+              upiVPA={settings.upiVPA}
+              amount={finalAmount}
+              payeeName="Eventia Tickets"
+              transactionNote={transactionNote}
             />
           </div>
           
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm text-gray-500">{t('payment.upiId')}</p>
-                <p className="font-medium">{paymentData.vpa}</p>
+          {/* Discount information if applicable */}
+          {settings.discountAmount && settings.discountAmount > 0 && (
+            <div className="bg-green-50 p-3 rounded-md border border-green-100">
+              <p className="text-green-700 text-sm font-medium">
+                {t('payment.discountApplied')}: ₹{settings.discountAmount}
+              </p>
+              <div className="flex justify-between mt-1 text-sm">
+                <span className="text-gray-600">{t('payment.originalAmount')}</span>
+                <span className="text-gray-600">₹{amount.toLocaleString('en-IN')}</span>
               </div>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={handleCopyVpa}
-              >
-                {isCopied ? (
-                  <Check className="h-4 w-4 mr-1" />
-                ) : (
-                  <Copy className="h-4 w-4 mr-1" />
-                )}
-                {isCopied ? t('common.copied') : t('common.copy')}
-              </Button>
+              <div className="flex justify-between mt-1 font-medium">
+                <span>{t('payment.finalAmount')}</span>
+                <span>₹{finalAmount.toLocaleString('en-IN')}</span>
+              </div>
             </div>
-            
-            <div>
-              <p className="text-sm text-gray-500">{t('payment.payeeName')}</p>
-              <p className="font-medium">{paymentData.payeeName}</p>
-            </div>
-            
+          )}
+          
+          {/* Payment amounts */}
+          {(!settings.discountAmount || settings.discountAmount === 0) && (
             <div>
               <p className="text-sm text-gray-500">{t('payment.amount')}</p>
-              <p className="font-medium text-lg">₹{paymentData.amount.toLocaleString('en-IN')}</p>
+              <p className="font-medium text-lg">₹{finalAmount.toLocaleString('en-IN')}</p>
             </div>
-            
-            <div>
-              <p className="text-sm text-gray-500">{t('payment.transactionNote')}</p>
-              <p className="font-medium">{paymentData.transactionNote}</p>
-            </div>
+          )}
+          
+          <div>
+            <p className="text-sm text-gray-500">{t('payment.transactionNote')}</p>
+            <p className="font-medium">{transactionNote}</p>
           </div>
           
+          {/* UTR Input */}
           <div className="pt-4 border-t border-gray-200">
             <h3 className="font-medium mb-2">{t('payment.enterUtr')}</h3>
             <p className="text-sm text-gray-500 mb-4">
