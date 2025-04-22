@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -7,11 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { CircleDollarSign, TrendingUp, Calendar, Users, AlertCircle, Check, CreditCard, Package, Ticket } from 'lucide-react';
+import { CircleDollarSign, TrendingUp, Calendar, Users, AlertCircle, Check, CreditCard, Package, Ticket, Percent } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import { toast } from '@/hooks/use-toast';
 
-// Mock data for the analytics dashboard
 const revenueData = [
   { name: 'Jan', revenue: 52000 },
   { name: 'Feb', revenue: 45000 },
@@ -45,7 +43,6 @@ const AdminDashboard = () => {
 
   const refreshData = () => {
     setIsRefreshing(true);
-    // In a real app, we would fetch the latest data from the backend
     setTimeout(() => {
       setIsRefreshing(false);
       toast({
@@ -80,8 +77,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Admin Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Link to="/admin-events">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardHeader className="pb-2">
@@ -123,9 +119,22 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </Link>
+
+            <Link to="/admin-discounts">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center">
+                    <Percent className="h-5 w-5 mr-2 text-primary" />
+                    Discount Codes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500">Manage discount codes and promotions</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
 
-          {/* Key Metrics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="pb-2">
