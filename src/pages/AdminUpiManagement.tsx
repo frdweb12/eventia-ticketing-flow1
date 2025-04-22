@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
-import { Copy, CreditCard, Shield, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Copy, CreditCard, Shield, CheckCircle2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,13 +32,25 @@ const AdminUpiManagement = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleString());
+  const [configError, setConfigError] = useState<string | null>(null);
   
-  // Initialize Supabase client
+  // Initialize Supabase client with error handling
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabase = createClient(supabaseUrl, supabaseKey);
   
-  // Get current payment settings
+  // Check if Supabase credentials are available
+  useEffect(() => {
+    if (!supabaseUrl || !supabaseKey) {
+      setConfigError('Supabase configuration is missing. Please connect your project to Supabase first.');
+    } else {
+      setConfigError(null);
+    }
+  }, [supabaseUrl, supabaseKey]);
+  
+  // Only create the client when credentials are available
+  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+  
+  // Get current payment settings with modified hook that handles missing Supabase config
   const { settings, isLoading, error, refreshSettings } = usePaymentSettings();
   
   const form = useForm<UpiFormValues>({
@@ -68,6 +80,15 @@ const AdminUpiManagement = () => {
   }, [settings, form]);
 
   const onSubmit = async (data: UpiFormValues) => {
+    if (!supabase) {
+      toast({
+        title: "Supabase configuration missing",
+        description: "Please connect your project to Supabase first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
       // In a real application, this would update the UPI details in the database
       const { error } = await supabase
@@ -126,6 +147,42 @@ const AdminUpiManagement = () => {
       });
     }, 1000);
   };
+
+  if (configError) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-grow bg-gray-50 pt-16 pb-12 flex items-center justify-center">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <CardTitle className="flex items-center text-amber-600">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                Configuration Error
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">{configError}</p>
+              <p className="text-sm text-gray-600 mb-4">
+                To use this feature, you need to connect your Lovable project to Supabase:
+              </p>
+              <ol className="list-decimal list-inside text-sm text-gray-600 space-y-2 mb-4">
+                <li>Click the green Supabase button in the top right corner</li>
+                <li>Follow the connection steps</li>
+                <li>Once connected, refresh this page</li>
+              </ol>
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="w-full"
+              >
+                Refresh Page
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

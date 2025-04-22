@@ -16,10 +16,12 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
   const [error, setError] = useState<Error | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Initialize Supabase client
+  // Initialize Supabase client with check for valid config
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  
+  // Create client only if configuration exists
+  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
   // Function to manually trigger a refresh
   const refreshSettings = () => {
@@ -27,6 +29,18 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
   };
 
   useEffect(() => {
+    // Skip fetch if Supabase is not configured
+    if (!supabase) {
+      setSettings({
+        upiVPA: 'default@upi',
+        discountCode: null,
+        discountAmount: 0,
+        updatedAt: new Date().toISOString()
+      });
+      setIsLoading(false);
+      return;
+    }
+    
     const fetchSettings = async () => {
       setIsLoading(true);
       setError(null);
@@ -62,6 +76,14 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
         console.error('Error fetching payment settings:', err);
         setError(err);
         
+        // Fall back to default settings
+        setSettings({
+          upiVPA: 'default@upi',
+          discountCode: null,
+          discountAmount: 0,
+          updatedAt: new Date().toISOString()
+        });
+        
         toast({
           title: "Error loading payment settings",
           description: "Using default settings. Please try again later.",
@@ -74,8 +96,8 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
     
     fetchSettings();
     
-    // Set up real-time subscription if shouldRefresh is true
-    if (shouldRefresh) {
+    // Set up real-time subscription if shouldRefresh is true and Supabase is configured
+    if (shouldRefresh && supabase) {
       const subscription = supabase
         .channel('payment_settings_changes')
         .on('postgres_changes', 
@@ -91,7 +113,7 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
         subscription.unsubscribe();
       };
     }
-  }, [refreshTrigger, shouldRefresh]);
+  }, [refreshTrigger, shouldRefresh, supabase]);
   
   return { settings, isLoading, error, refreshSettings };
 };
