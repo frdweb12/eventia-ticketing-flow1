@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';  // Changed import to use QRCodeSVG
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 
@@ -39,12 +39,11 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
 
   return (
     <Card className="flex items-center justify-center p-6 bg-gray-50 w-52 h-52 md:w-64 md:h-64 mx-auto">
-      <QRCode 
+      <QRCodeSVG  // Changed from QRCode to QRCodeSVG
         value={qrValue}
         size={200}
         level="H"
         includeMargin={true}
-        renderAs="svg"
       />
     </Card>
   );

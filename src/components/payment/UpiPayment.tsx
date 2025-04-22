@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Clipboard, CreditCard } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import QRCodeGenerator from './QRCodeGenerator';
 import { usePaymentSettings } from '@/hooks/use-payment-settings';
+import { createClient } from '@supabase/supabase-js';  // Add this import
 
 interface UpiPaymentProps {
   bookingId: string;
