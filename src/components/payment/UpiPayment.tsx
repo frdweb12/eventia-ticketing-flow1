@@ -70,16 +70,16 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
     );
   }
 
-  const upiVpa = settings?.upiVPA || 'default@upi';
+  const upiVpa = settings?.upiVPA || 'eventia@upi';
   const finalAmount = Math.max(discountedAmount, 0);
   
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h2 className="text-xl font-bold mb-6">{t('payment.upiPayment')}</h2>
+      <h2 className="text-xl font-bold mb-6">{t('payment.upiPayment') || 'UPI Payment'}</h2>
       
       <div className="grid md:grid-cols-2 gap-6">
         <div className="border rounded-lg p-4 flex flex-col items-center">
-          <h3 className="text-lg font-medium mb-4">{t('payment.scanQR')}</h3>
+          <h3 className="text-lg font-medium mb-4">{t('payment.scanQR') || 'Scan QR Code'}</h3>
           <QRCodeGenerator
             upiVPA={upiVpa}
             amount={finalAmount}
@@ -87,22 +87,22 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
           />
           
           <div className="mt-4 w-full">
-            <div className="text-sm text-gray-500 mb-1">{t('payment.payeeDetails')}</div>
+            <div className="text-sm text-gray-500 mb-1">{t('payment.payeeDetails') || 'Payee Details'}</div>
             <div className="bg-gray-50 p-3 rounded-md space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.merchantName')}</span>
+                <span className="text-sm text-gray-600">{t('payment.merchantName') || 'Merchant Name'}</span>
                 <span className="text-sm font-medium">Eventia</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.merchantVPA')}</span>
+                <span className="text-sm text-gray-600">{t('payment.merchantVPA') || 'UPI ID'}</span>
                 <span className="text-sm font-medium">{upiVpa}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.transactionNote')}</span>
+                <span className="text-sm text-gray-600">{t('payment.transactionNote') || 'Transaction Note'}</span>
                 <span className="text-sm font-medium">Booking #{bookingId}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.totalAmount')}</span>
+                <span className="text-sm text-gray-600">{t('payment.totalAmount') || 'Total Amount'}</span>
                 <span className="text-sm font-medium">₹{finalAmount.toLocaleString('en-IN')}</span>
               </div>
             </div>
@@ -110,9 +110,9 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
         </div>
         
         <div className="border rounded-lg p-4">
-          <h3 className="text-lg font-medium mb-4">{t('payment.submitUTR')}</h3>
+          <h3 className="text-lg font-medium mb-4">{t('payment.submitUTR') || 'Submit UTR Number'}</h3>
           <p className="text-sm text-gray-600 mb-4">
-            {t('payment.utrDescription')}
+            {t('payment.utrDescription') || 'After making the payment, please enter the UTR number you received.'}
           </p>
           
           <DiscountForm 
@@ -132,7 +132,7 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
             <div>
               <div className="flex justify-between mb-1">
                 <label htmlFor="utr" className="text-sm font-medium">
-                  {t('payment.enterUTR')}
+                  {t('payment.enterUTR') || 'Enter UTR Number'}
                 </label>
                 <span className="text-sm text-primary font-semibold">
                   ₹{finalAmount.toLocaleString('en-IN')}
@@ -142,11 +142,11 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
                 id="utr"
                 value={utrNumber}
                 onChange={(e) => setUtrNumber(e.target.value)}
-                placeholder={t('payment.utrPlaceholder')}
+                placeholder={t('payment.utrPlaceholder') || 'Enter 12-digit UTR number'}
                 disabled={isSubmitting}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {t('payment.utrHelper')}
+                {t('payment.utrHelper') || 'The UTR number is provided by your bank after payment is completed'}
               </p>
             </div>
             
@@ -155,7 +155,7 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
               className="w-full"
               disabled={!utrNumber.trim() || isSubmitting}
             >
-              {isSubmitting ? t('common.processing') : t('payment.confirmPayment')}
+              {isSubmitting ? (t('common.processing') || 'Processing...') : (t('payment.confirmPayment') || 'Confirm Payment')}
             </Button>
           </form>
         </div>

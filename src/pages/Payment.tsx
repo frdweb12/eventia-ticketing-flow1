@@ -139,28 +139,30 @@ const Payment = () => {
               disabled={isProcessing}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t('common.back')}
+              {t('common.back') || 'Back'}
             </Button>
             <LanguageSwitcher />
           </div>
           
           <div className="max-w-3xl mx-auto">
             <div className="mb-6">
-              <h1 className="text-2xl font-bold">{t('payment.title')}</h1>
-              <p className="text-gray-600">
-                {t('payment.subtitle', { eventTitle: bookingDetails.eventTitle })}
-              </p>
+              <h1 className="text-2xl font-bold">{t('payment.title') || 'Payment'}</h1>
+              {bookingDetails.eventTitle && (
+                <p className="text-gray-600">
+                  {t('payment.subtitle', { eventTitle: bookingDetails.eventTitle }) || `Complete your payment for ${bookingDetails.eventTitle}`}
+                </p>
+              )}
               
               <div className="mt-4 bg-gray-50 p-4 rounded-md">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm text-gray-500">{t('payment.totalAmount')}</p>
+                    <p className="text-sm text-gray-500">{t('payment.totalAmount') || 'Total Amount'}</p>
                     <p className="text-xl font-bold">₹{bookingDetails.amount.toLocaleString('en-IN')}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">{t('payment.tickets')}</p>
+                    <p className="text-sm text-gray-500">{t('payment.tickets') || 'Tickets'}</p>
                     <p className="font-medium">
-                      {bookingDetails.ticketCount} {bookingDetails.ticketCount === 1 ? t('common.ticket') : t('common.tickets')}
+                      {bookingDetails.ticketCount} {bookingDetails.ticketCount === 1 ? (t('common.ticket') || 'Ticket') : (t('common.tickets') || 'Tickets')}
                     </p>
                   </div>
                 </div>

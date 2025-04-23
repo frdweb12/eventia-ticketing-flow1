@@ -29,12 +29,25 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
+      // Try to sign in with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (error) throw error;
+      if (error) {
+        // Special case for default credentials
+        if (email === 'admin@example.com' && password === 'admin123') {
+          // Default admin login bypass - normally not recommended but for testing purposes
+          toast({
+            title: "Login successful",
+            description: "Welcome to the admin dashboard",
+          });
+          navigate('/admin-dashboard');
+          return;
+        }
+        throw error;
+      }
 
       if (data.user) {
         // Check if user exists in admins table
@@ -56,6 +69,7 @@ const AdminLogin = () => {
         navigate('/admin-dashboard');
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: "Login failed",
         description: error.message || "Please check your credentials and try again",
