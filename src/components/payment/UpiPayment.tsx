@@ -81,9 +81,9 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
         <div className="border rounded-lg p-4 flex flex-col items-center">
           <h3 className="text-lg font-medium mb-4">{t('payment.scanQR')}</h3>
           <QRCodeGenerator
-            vpa={upiVpa}
+            upiVPA={upiVpa}
             amount={finalAmount}
-            description={`Booking #${bookingId}`}
+            transactionNote={`Booking #${bookingId}`}
           />
           
           <div className="mt-4 w-full">

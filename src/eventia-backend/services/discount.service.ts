@@ -56,9 +56,19 @@ export const discountService = {
    * Apply a discount code (increment uses_count)
    */
   async applyDiscountCode(id: string) {
+    // First get the current uses_count
+    const { data: currentData } = await supabase
+      .from('discounts')
+      .select('uses_count')
+      .eq('id', id)
+      .single();
+    
+    // Then increment it manually
+    const newUsesCount = (currentData?.uses_count || 0) + 1;
+    
     const { data, error } = await supabase
       .from('discounts')
-      .update({ uses_count: supabase.rpc('increment', { row_id: id }) })
+      .update({ uses_count: newUsesCount })
       .eq('id', id)
       .select()
       .single();
