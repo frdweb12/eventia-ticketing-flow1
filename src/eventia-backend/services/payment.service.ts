@@ -1,19 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import { Payment, UpiSettings } from '../models/payment.model';
 
 export const paymentService = {
   /**
    * Create a new payment record
    */
-  async createPayment(payment: Omit<Database['public']['Tables']['booking_payments']['Insert'], 'id' | 'created_at'>) {
+  async createPayment(payment: Omit<Payment, 'id' | 'created_at'>) {
     const { data, error } = await supabase
       .from('booking_payments')
-      .insert([{ ...payment }])
+      .insert([payment])
       .select()
       .single();
     if (error) throw error;
-    return data;
+    return data as Payment;
   },
 
   /**
@@ -27,7 +28,7 @@ export const paymentService = {
       .select()
       .single();
     if (error) throw error;
-    return data;
+    return data as Payment;
   },
 
   /**
@@ -45,7 +46,7 @@ export const paymentService = {
       .select()
       .single();
     if (error) throw error;
-    return data;
+    return data as Payment;
   },
 
   /**
@@ -62,7 +63,7 @@ export const paymentService = {
       .select()
       .single();
     if (error) throw error;
-    return data;
+    return data as Payment;
   },
 
   /**
@@ -75,7 +76,7 @@ export const paymentService = {
       .eq('booking_id', bookingId)
       .maybeSingle();
     if (error) throw error;
-    return data;
+    return data as Payment | null;
   },
 
   /**
@@ -85,16 +86,16 @@ export const paymentService = {
     const { data, error } = await supabase
       .from('upi_settings')
       .select('*')
-      .eq('isActive', true)
+      .eq('isactive', true)
       .maybeSingle();
     if (error) return null;
-    return data;
+    return data as UpiSettings | null;
   },
 
   /**
    * Update UPI settings
    */
-  async updateUpiSettings(settings: Partial<Database['public']['Tables']['upi_settings']['Update']>) {
+  async updateUpiSettings(settings: Partial<UpiSettings>) {
     const { data, error } = await supabase
       .from('upi_settings')
       .update({
@@ -105,6 +106,6 @@ export const paymentService = {
       .select()
       .single();
     if (error) throw error;
-    return data;
+    return data as UpiSettings;
   }
 };

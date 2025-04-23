@@ -244,6 +244,83 @@ export type Database = {
         }
         Relationships: []
       }
+      seats: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_available: boolean
+          number: string
+          price: number
+          row: string
+          section: string
+          stadium_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          number: string
+          price: number
+          row: string
+          section: string
+          stadium_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          number?: string
+          price?: number
+          row?: string
+          section?: string
+          stadium_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seats_stadium_id_fkey"
+            columns: ["stadium_id"]
+            isOneToOne: false
+            referencedRelation: "stadiums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stadiums: {
+        Row: {
+          ar_model_url: string | null
+          capacity: number
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          location: string
+          name: string
+        }
+        Insert: {
+          ar_model_url?: string | null
+          capacity: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location: string
+          name: string
+        }
+        Update: {
+          ar_model_url?: string | null
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string
+          name?: string
+        }
+        Relationships: []
+      }
       upi_settings: {
         Row: {
           created_at: string
