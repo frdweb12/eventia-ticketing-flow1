@@ -1,13 +1,15 @@
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clipboard, CreditCard, AlertTriangle } from 'lucide-react';
+import { Clipboard } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import QRCodeGenerator from './QRCodeGenerator';
 import { usePaymentSettings } from '@/hooks/use-payment-settings';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 interface UpiPaymentProps {
   bookingId: string;
@@ -19,10 +21,10 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
   const { t } = useTranslation();
   const [utrNumber, setUtrNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Fetch payment settings with real-time updates enabled
   const { settings, isLoading, error } = usePaymentSettings(true);
-  
+
   // Apply discount if available
   const calculateDiscountedAmount = () => {
     if (settings?.discountAmount && settings.discountAmount > 0) {
@@ -30,11 +32,11 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
     }
     return amount;
   };
-  
+
   const finalAmount = calculateDiscountedAmount();
   const transactionNote = `Eventia-${bookingId}`;
 
-  const handleUtrSubmit = () => {
+  const handleUtrSubmitHandler = () => {
     if (!utrNumber.trim()) {
       toast({
         title: t('payment.utrRequired'),
@@ -45,25 +47,24 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
     }
 
     setIsSubmitting(true);
-    
+
     // Save UTR to database
     const saveUtr = async () => {
       try {
+        // Use the Supabase type for booking_payments insert
+        const paymentInsert: Database['public']['Tables']['booking_payments']['Insert'] = {
+          booking_id: bookingId,
+          utr_number: utrNumber,
+          amount: finalAmount,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        };
         const { error } = await supabase
           .from('booking_payments')
-          .insert({
-            booking_id: bookingId,
-            utr_number: utrNumber,
-            amount: finalAmount,
-            status: 'pending',
-            created_at: new Date().toISOString()
-          });
-          
+          .insert([paymentInsert]);
         if (error) throw error;
-        
-        // Call the callback
         onUtrSubmit(utrNumber);
-        
+
       } catch (error) {
         console.error('Error saving UTR:', error);
         toast({
@@ -74,7 +75,7 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
         setIsSubmitting(false);
       }
     };
-    
+
     saveUtr();
   };
 
@@ -90,8 +91,8 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
     return (
       <div className="text-center p-4">
         <p className="text-red-500">{t('payment.errorLoading')}</p>
-        <Button 
-          className="mt-4" 
+        <Button
+          className="mt-4"
           onClick={() => window.location.reload()}
         >
           {t('common.retry')}
@@ -112,15 +113,14 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
         <CardContent className="space-y-6">
           {/* QR Code */}
           <div className="bg-gray-50 p-4 rounded-md flex justify-center">
-            <QRCodeGenerator 
+            <QRCodeGenerator
               upiVPA={settings.upiVPA}
               amount={finalAmount}
               payeeName="Eventia Tickets"
               transactionNote={transactionNote}
             />
           </div>
-          
-          {/* Discount information if applicable */}
+          {/* Discount info */}
           {settings.discountAmount && settings.discountAmount > 0 && (
             <div className="bg-green-50 p-3 rounded-md border border-green-100">
               <p className="text-green-700 text-sm font-medium">
@@ -136,7 +136,6 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
               </div>
             </div>
           )}
-          
           {/* Payment amounts */}
           {(!settings.discountAmount || settings.discountAmount === 0) && (
             <div>
@@ -144,12 +143,10 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
               <p className="font-medium text-lg">₹{finalAmount.toLocaleString('en-IN')}</p>
             </div>
           )}
-          
           <div>
             <p className="text-sm text-gray-500">{t('payment.transactionNote')}</p>
             <p className="font-medium">{transactionNote}</p>
           </div>
-          
           {/* UTR Input */}
           <div className="pt-4 border-t border-gray-200">
             <h3 className="font-medium mb-2">{t('payment.enterUtr')}</h3>
@@ -171,9 +168,9 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
           </div>
         </CardContent>
         <CardFooter>
-          <Button 
-            className="w-full" 
-            onClick={handleUtrSubmit}
+          <Button
+            className="w-full"
+            onClick={handleUtrSubmitHandler}
             disabled={isSubmitting}
           >
             {isSubmitting ? (

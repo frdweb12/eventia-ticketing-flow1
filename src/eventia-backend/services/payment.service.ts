@@ -1,21 +1,21 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Payment, UpiSettings } from '../models';
+import type { Database } from '@/integrations/supabase/types';
 
 export const paymentService = {
   /**
    * Create a new payment record
    */
-  async createPayment(payment: Omit<Payment, 'id' | 'created_at'>) {
+  async createPayment(payment: Omit<Database['public']['Tables']['booking_payments']['Insert'], 'id' | 'created_at'>) {
     const { data, error } = await supabase
       .from('booking_payments')
-      .insert([payment])
-      .select();
-      
+      .insert([{ ...payment }])
+      .select()
+      .single();
     if (error) throw error;
-    return data[0] as Payment;
+    return data;
   },
-  
+
   /**
    * Update UTR number for a payment
    */
@@ -24,47 +24,47 @@ export const paymentService = {
       .from('booking_payments')
       .update({ utr_number: utrNumber })
       .eq('id', id)
-      .select();
-      
+      .select()
+      .single();
     if (error) throw error;
-    return data[0] as Payment;
+    return data;
   },
-  
+
   /**
    * Verify a payment
    */
   async verifyPayment(id: string, adminId: string) {
     const { data, error } = await supabase
       .from('booking_payments')
-      .update({ 
-        status: 'verified', 
+      .update({
+        status: 'verified',
         verified_by: adminId,
         payment_date: new Date().toISOString()
       })
       .eq('id', id)
-      .select();
-      
+      .select()
+      .single();
     if (error) throw error;
-    return data[0] as Payment;
+    return data;
   },
-  
+
   /**
    * Reject a payment
    */
   async rejectPayment(id: string, adminId: string) {
     const { data, error } = await supabase
       .from('booking_payments')
-      .update({ 
-        status: 'rejected', 
+      .update({
+        status: 'rejected',
         verified_by: adminId
       })
       .eq('id', id)
-      .select();
-      
+      .select()
+      .single();
     if (error) throw error;
-    return data[0] as Payment;
+    return data;
   },
-  
+
   /**
    * Get payment by booking ID
    */
@@ -73,12 +73,11 @@ export const paymentService = {
       .from('booking_payments')
       .select('*')
       .eq('booking_id', bookingId)
-      .single();
-      
+      .maybeSingle();
     if (error) throw error;
-    return data as Payment;
+    return data;
   },
-  
+
   /**
    * Get UPI settings
    */
@@ -87,16 +86,15 @@ export const paymentService = {
       .from('upi_settings')
       .select('*')
       .eq('isActive', true)
-      .single();
-      
+      .maybeSingle();
     if (error) return null;
-    return data as UpiSettings;
+    return data;
   },
-  
+
   /**
    * Update UPI settings
    */
-  async updateUpiSettings(settings: Partial<UpiSettings>) {
+  async updateUpiSettings(settings: Partial<Database['public']['Tables']['upi_settings']['Update']>) {
     const { data, error } = await supabase
       .from('upi_settings')
       .update({
@@ -104,9 +102,9 @@ export const paymentService = {
         updated_at: new Date().toISOString()
       })
       .eq('id', settings.id)
-      .select();
-      
+      .select()
+      .single();
     if (error) throw error;
-    return data[0] as UpiSettings;
+    return data;
   }
 };

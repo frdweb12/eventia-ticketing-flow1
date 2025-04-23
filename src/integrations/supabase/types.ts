@@ -30,6 +30,47 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_payments: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          id: string
+          payment_date: string | null
+          status: string
+          utr_number: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          payment_date?: string | null
+          status: string
+          utr_number?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          payment_date?: string | null
+          status?: string
+          utr_number?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -146,6 +187,87 @@ export type Database = {
           is_active?: boolean
           max_uses?: number
           uses_count?: number
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          categories: string[] | null
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_featured: boolean
+          location: string
+          price_range: string | null
+          seats_available: number
+          start_date: string
+          title: string
+          total_seats: number
+          venue_id: string | null
+        }
+        Insert: {
+          categories?: string[] | null
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          location: string
+          price_range?: string | null
+          seats_available: number
+          start_date: string
+          title: string
+          total_seats: number
+          venue_id?: string | null
+        }
+        Update: {
+          categories?: string[] | null
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          location?: string
+          price_range?: string | null
+          seats_available?: number
+          start_date?: string
+          title?: string
+          total_seats?: number
+          venue_id?: string | null
+        }
+        Relationships: []
+      }
+      upi_settings: {
+        Row: {
+          created_at: string
+          discountamount: number
+          id: string
+          isactive: boolean
+          updated_at: string
+          upivpa: string
+        }
+        Insert: {
+          created_at?: string
+          discountamount?: number
+          id?: string
+          isactive?: boolean
+          updated_at?: string
+          upivpa: string
+        }
+        Update: {
+          created_at?: string
+          discountamount?: number
+          id?: string
+          isactive?: boolean
+          updated_at?: string
+          upivpa?: string
         }
         Relationships: []
       }
