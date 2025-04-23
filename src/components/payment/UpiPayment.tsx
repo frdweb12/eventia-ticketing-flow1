@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Clipboard, CreditCard, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import QRCodeGenerator from './QRCodeGenerator';
 import { usePaymentSettings } from '@/hooks/use-payment-settings';
-import { createClient } from '@supabase/supabase-js';  // Add this import
+import { supabase } from '@/integrations/supabase/client';
 
 interface UpiPaymentProps {
   bookingId: string;
@@ -20,11 +19,6 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
   const { t } = useTranslation();
   const [utrNumber, setUtrNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Check if Supabase configuration exists
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const isMissingConfig = !supabaseUrl || !supabaseKey;
   
   // Fetch payment settings with real-time updates enabled
   const { settings, isLoading, error } = usePaymentSettings(true);
@@ -50,30 +44,11 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
       return;
     }
 
-    // If Supabase is not configured, we'll just call the callback
-    if (isMissingConfig) {
-      toast({
-        title: "Demo Mode",
-        description: "In a real app, this would save data to the database."
-      });
-      
-      setIsSubmitting(true);
-      
-      setTimeout(() => {
-        setIsSubmitting(false);
-        onUtrSubmit(utrNumber);
-      }, 1000);
-      
-      return;
-    }
-
     setIsSubmitting(true);
     
-    // In a real application, this would call the Supabase function
+    // Save UTR to database
     const saveUtr = async () => {
       try {
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        
         const { error } = await supabase
           .from('booking_payments')
           .insert({
@@ -108,55 +83,6 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    );
-  }
-
-  if (isMissingConfig) {
-    return (
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className="flex items-center text-amber-600">
-            <AlertTriangle className="h-5 w-5 mr-2" />
-            {t('payment.demoMode')}
-          </CardTitle>
-          <CardDescription>
-            {t('payment.configurationMissing')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-amber-50 p-4 rounded-md mb-4">
-            <p className="text-sm text-amber-800">
-              This is a preview mode. In a real application, payments would be processed through Supabase.
-            </p>
-          </div>
-          
-          <QRCodeGenerator 
-            upiVPA="demo@example"
-            amount={finalAmount}
-            payeeName="Demo Mode"
-            transactionNote={transactionNote}
-          />
-          
-          <div className="mt-6">
-            <label className="block font-medium mb-2">{t('payment.enterUtr')}</label>
-            <Input
-              placeholder="UTR Number (Demo Mode)"
-              value={utrNumber}
-              onChange={(e) => setUtrNumber(e.target.value)}
-              className="font-mono mb-2"
-            />
-            <Button 
-              className="w-full" 
-              onClick={handleUtrSubmit}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 
-                t('payment.processing') : 
-                t('payment.submitUtr')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     );
   }
 

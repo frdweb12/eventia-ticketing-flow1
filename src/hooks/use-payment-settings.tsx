@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 export interface PaymentSettings {
@@ -16,31 +16,12 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
   const [error, setError] = useState<Error | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Initialize Supabase client with check for valid config
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  
-  // Create client only if configuration exists
-  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
   // Function to manually trigger a refresh
   const refreshSettings = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
-    // Skip fetch if Supabase is not configured
-    if (!supabase) {
-      setSettings({
-        upiVPA: 'default@upi',
-        discountCode: null,
-        discountAmount: 0,
-        updatedAt: new Date().toISOString()
-      });
-      setIsLoading(false);
-      return;
-    }
-    
     const fetchSettings = async () => {
       setIsLoading(true);
       setError(null);
@@ -96,8 +77,8 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
     
     fetchSettings();
     
-    // Set up real-time subscription if shouldRefresh is true and Supabase is configured
-    if (shouldRefresh && supabase) {
+    // Set up real-time subscription if shouldRefresh is true
+    if (shouldRefresh) {
       const subscription = supabase
         .channel('payment_settings_changes')
         .on('postgres_changes', 
@@ -113,7 +94,7 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
         subscription.unsubscribe();
       };
     }
-  }, [refreshTrigger, shouldRefresh, supabase]);
+  }, [refreshTrigger, shouldRefresh]);
   
   return { settings, isLoading, error, refreshSettings };
 };

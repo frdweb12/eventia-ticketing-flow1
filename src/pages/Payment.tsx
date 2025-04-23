@@ -7,7 +7,7 @@ import UpiPayment from '@/components/payment/UpiPayment';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 const Payment = () => {
@@ -18,10 +18,6 @@ const Payment = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabase = createClient(supabaseUrl, supabaseKey);
   
   useEffect(() => {
     if (location.state?.bookingDetails) {
