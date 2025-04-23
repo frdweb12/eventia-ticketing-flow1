@@ -1,17 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
-import { Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Plus, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { discountService } from '@/eventia-backend/services/discount.service';
+import { Discount } from '@/eventia-backend/models/discount.model';
+import DiscountList from '@/components/admin/DiscountList';
 
 const discountSchema = z.object({
   code: z.string().min(3, "Discount code must be at least 3 characters"),
@@ -25,13 +29,12 @@ type DiscountFormValues = z.infer<typeof discountSchema>;
 
 const AdminDiscountManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [configError, setConfigError] = useState<string | null>(null);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  // Initialize Supabase client with error handling
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
+  // Initialize form
   const form = useForm<DiscountFormValues>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
@@ -43,78 +46,137 @@ const AdminDiscountManagement = () => {
     }
   });
 
-  const onSubmit = async (data: DiscountFormValues) => {
-    if (!supabase) {
+  // Fetch all active discounts
+  const fetchDiscounts = async () => {
+    try {
+      const data = await discountService.getAllActiveDiscounts();
+      setDiscounts(data);
+    } catch (error) {
+      console.error('Error fetching discounts:', error);
       toast({
-        title: "Configuration Error",
-        description: "Please connect your project to Supabase first",
+        title: "Error",
+        description: "Failed to fetch discount codes",
         variant: "destructive"
       });
-      return;
     }
+  };
 
+  useEffect(() => {
+    fetchDiscounts();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('discounts_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'discounts' }, 
+        (payload) => {
+          fetchDiscounts();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const resetForm = () => {
+    form.reset({
+      code: '',
+      amount: 0,
+      description: '',
+      maxUses: 100,
+      expiryDate: '',
+    });
+    setIsEditMode(false);
+    setSelectedDiscount(null);
+  };
+
+  const handleEditDiscount = (discount: Discount) => {
+    form.reset({
+      code: discount.code,
+      amount: discount.amount,
+      description: discount.description || '',
+      maxUses: discount.max_uses,
+      expiryDate: discount.expiry_date ? new Date(discount.expiry_date).toISOString().split('T')[0] : '',
+    });
+    setSelectedDiscount(discount);
+    setIsEditMode(true);
+  };
+
+  const handleDeleteDiscount = (discount: Discount) => {
+    setSelectedDiscount(discount);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedDiscount) return;
+    
+    try {
+      await discountService.updateDiscountCode(selectedDiscount.id, { is_active: false });
+      toast({
+        title: "Success",
+        description: `Discount code ${selectedDiscount.code} has been deleted.`,
+      });
+      fetchDiscounts();
+    } catch (error) {
+      console.error('Error deleting discount:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete discount code",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setSelectedDiscount(null);
+    }
+  };
+
+  const onSubmit = async (data: DiscountFormValues) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('discounts')
-        .insert({
+      if (isEditMode && selectedDiscount) {
+        // Update existing discount
+        await discountService.updateDiscountCode(selectedDiscount.id, {
           code: data.code.toUpperCase(),
           amount: data.amount,
           description: data.description,
           max_uses: data.maxUses,
           expiry_date: data.expiryDate || null,
-          created_at: new Date().toISOString(),
-          is_active: true,
-          uses_count: 0
         });
-
-      if (error) throw error;
-
-      toast({
-        title: "Discount Created",
-        description: "The discount code has been created successfully.",
-      });
-
-      form.reset();
+        toast({
+          title: "Discount Updated",
+          description: `The discount code ${data.code.toUpperCase()} has been updated.`,
+        });
+      } else {
+        // Create new discount
+        await discountService.createDiscountCode({
+          code: data.code.toUpperCase(),
+          amount: data.amount,
+          description: data.description,
+          max_uses: data.maxUses,
+          expiry_date: data.expiryDate || undefined,
+          is_active: true
+        });
+        toast({
+          title: "Discount Created",
+          description: `The discount code ${data.code.toUpperCase()} has been created.`,
+        });
+      }
+      
+      resetForm();
+      fetchDiscounts();
     } catch (error) {
-      console.error('Error creating discount:', error);
+      console.error('Error saving discount:', error);
       toast({
         title: "Error",
-        description: "Failed to create discount code. Please try again.",
+        description: "Failed to save discount code. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (!supabaseUrl || !supabaseKey) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <Navbar />
-        <main className="flex-grow bg-gray-50 pt-16 pb-12 flex items-center justify-center">
-          <Card className="max-w-md w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center text-amber-600">
-                <AlertTriangle className="h-5 w-5 mr-2" />
-                Configuration Error
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4">Supabase configuration is missing. Please connect your project to Supabase first.</p>
-              <Button 
-                onClick={() => window.location.reload()} 
-                className="w-full"
-              >
-                Refresh Page
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -131,10 +193,13 @@ const AdminDiscountManagement = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Plus className="h-5 w-5 mr-2 text-primary" />
-                  Create New Discount
+                  {isEditMode ? "Edit Discount" : "Create New Discount"}
                 </CardTitle>
                 <CardDescription>
-                  Set up a new discount code for your events
+                  {isEditMode 
+                    ? `Edit existing discount code: ${selectedDiscount?.code}`
+                    : "Set up a new discount code for your events"
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -222,9 +287,16 @@ const AdminDiscountManagement = () => {
                       )}
                     />
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? 'Creating...' : 'Create Discount Code'}
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button type="submit" className="flex-1" disabled={isLoading}>
+                        {isLoading ? 'Saving...' : isEditMode ? 'Update Discount' : 'Create Discount'}
+                      </Button>
+                      {isEditMode && (
+                        <Button type="button" variant="outline" onClick={resetForm}>
+                          Cancel
+                        </Button>
+                      )}
+                    </div>
                   </form>
                 </Form>
               </CardContent>
@@ -238,15 +310,38 @@ const AdminDiscountManagement = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {/* We'll implement the active discounts list later */}
-                  <p className="text-sm text-gray-500">No active discounts</p>
-                </div>
+                <DiscountList 
+                  discounts={discounts}
+                  onEdit={handleEditDiscount}
+                  onDelete={handleDeleteDiscount}
+                />
               </CardContent>
             </Card>
           </div>
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the discount code <strong>{selectedDiscount?.code}</strong>?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );

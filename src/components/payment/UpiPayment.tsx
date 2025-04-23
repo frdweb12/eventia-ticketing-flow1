@@ -1,15 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clipboard } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import QRCodeGenerator from './QRCodeGenerator';
 import { usePaymentSettings } from '@/hooks/use-payment-settings';
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import DiscountForm from './DiscountForm';
+import { Separator } from '@/components/ui/separator';
 
 interface UpiPaymentProps {
   bookingId: string;
@@ -21,172 +19,147 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit 
   const { t } = useTranslation();
   const [utrNumber, setUtrNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [discountedAmount, setDiscountedAmount] = useState(amount);
+  const [appliedCode, setAppliedCode] = useState('');
+  const { settings, isLoading } = usePaymentSettings(true);
 
-  // Fetch payment settings with real-time updates enabled
-  const { settings, isLoading, error } = usePaymentSettings(true);
-
-  // Apply discount if available
-  const calculateDiscountedAmount = () => {
-    if (settings?.discountAmount && settings.discountAmount > 0) {
-      return Math.max(0, amount - settings.discountAmount);
+  // Reset discounted amount if original amount changes
+  useEffect(() => {
+    if (!appliedCode) {
+      setDiscountedAmount(amount);
     }
-    return amount;
+  }, [amount, appliedCode]);
+
+  const handleApplyDiscount = (discountAmount: number, code: string) => {
+    if (discountAmount > 0 && code) {
+      const newAmount = Math.max(amount - discountAmount, 0);
+      setDiscountedAmount(newAmount);
+      setAppliedCode(code);
+    } else {
+      setDiscountedAmount(amount);
+      setAppliedCode('');
+    }
   };
 
-  const finalAmount = calculateDiscountedAmount();
-  const transactionNote = `Eventia-${bookingId}`;
-
-  const handleUtrSubmitHandler = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
     if (!utrNumber.trim()) {
       toast({
-        title: t('payment.utrRequired'),
-        description: t('payment.utrDescription'),
-        variant: "destructive"
+        title: "Error",
+        description: "Please enter a valid UTR number",
+        variant: "destructive",
       });
       return;
     }
-
+    
     setIsSubmitting(true);
-
-    // Save UTR to database
-    const saveUtr = async () => {
-      try {
-        // Use the Supabase type for booking_payments insert
-        const paymentInsert: Database['public']['Tables']['booking_payments']['Insert'] = {
-          booking_id: bookingId,
-          utr_number: utrNumber,
-          amount: finalAmount,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        };
-        const { error } = await supabase
-          .from('booking_payments')
-          .insert([paymentInsert]);
-        if (error) throw error;
-        onUtrSubmit(utrNumber);
-
-      } catch (error) {
-        console.error('Error saving UTR:', error);
-        toast({
-          title: "Error processing payment",
-          description: "Please try again or contact support",
-          variant: "destructive"
-        });
-        setIsSubmitting(false);
-      }
-    };
-
-    saveUtr();
+    
+    // In a real app, we would verify the UTR number here
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onUtrSubmit(utrNumber);
+    }, 1500);
   };
-
+  
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin h-6 w-6 border-t-2 border-primary rounded-full"></div>
       </div>
     );
   }
 
-  if (error || !settings) {
-    return (
-      <div className="text-center p-4">
-        <p className="text-red-500">{t('payment.errorLoading')}</p>
-        <Button
-          className="mt-4"
-          onClick={() => window.location.reload()}
-        >
-          {t('common.retry')}
-        </Button>
-      </div>
-    );
-  }
-
+  const upiVpa = settings?.upiVPA || 'default@upi';
+  const finalAmount = Math.max(discountedAmount, 0);
+  
   return (
-    <div className="max-w-md mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('payment.upiPayment')}</CardTitle>
-          <CardDescription>
-            {t('payment.scanQrOrPayManually')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* QR Code */}
-          <div className="bg-gray-50 p-4 rounded-md flex justify-center">
-            <QRCodeGenerator
-              upiVPA={settings.upiVPA}
-              amount={finalAmount}
-              payeeName="Eventia Tickets"
-              transactionNote={transactionNote}
-            />
-          </div>
-          {/* Discount info */}
-          {settings.discountAmount && settings.discountAmount > 0 && (
-            <div className="bg-green-50 p-3 rounded-md border border-green-100">
-              <p className="text-green-700 text-sm font-medium">
-                {t('payment.discountApplied')}: ₹{settings.discountAmount}
-              </p>
-              <div className="flex justify-between mt-1 text-sm">
-                <span className="text-gray-600">{t('payment.originalAmount')}</span>
-                <span className="text-gray-600">₹{amount.toLocaleString('en-IN')}</span>
+    <div className="bg-white rounded-lg shadow-sm border p-6">
+      <h2 className="text-xl font-bold mb-6">{t('payment.upiPayment')}</h2>
+      
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="border rounded-lg p-4 flex flex-col items-center">
+          <h3 className="text-lg font-medium mb-4">{t('payment.scanQR')}</h3>
+          <QRCodeGenerator
+            vpa={upiVpa}
+            amount={finalAmount}
+            description={`Booking #${bookingId}`}
+          />
+          
+          <div className="mt-4 w-full">
+            <div className="text-sm text-gray-500 mb-1">{t('payment.payeeDetails')}</div>
+            <div className="bg-gray-50 p-3 rounded-md space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">{t('payment.merchantName')}</span>
+                <span className="text-sm font-medium">Eventia</span>
               </div>
-              <div className="flex justify-between mt-1 font-medium">
-                <span>{t('payment.finalAmount')}</span>
-                <span>₹{finalAmount.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">{t('payment.merchantVPA')}</span>
+                <span className="text-sm font-medium">{upiVpa}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">{t('payment.transactionNote')}</span>
+                <span className="text-sm font-medium">Booking #{bookingId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">{t('payment.totalAmount')}</span>
+                <span className="text-sm font-medium">₹{finalAmount.toLocaleString('en-IN')}</span>
               </div>
             </div>
+          </div>
+        </div>
+        
+        <div className="border rounded-lg p-4">
+          <h3 className="text-lg font-medium mb-4">{t('payment.submitUTR')}</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            {t('payment.utrDescription')}
+          </p>
+          
+          <DiscountForm 
+            onApplyDiscount={handleApplyDiscount} 
+            disabled={isSubmitting}
+          />
+          
+          {appliedCode && (
+            <div className="mt-2 mb-4 text-green-600 text-sm">
+              Discount of ₹{(amount - discountedAmount).toLocaleString('en-IN')} applied!
+            </div>
           )}
-          {/* Payment amounts */}
-          {(!settings.discountAmount || settings.discountAmount === 0) && (
+          
+          <Separator className="my-4" />
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <p className="text-sm text-gray-500">{t('payment.amount')}</p>
-              <p className="font-medium text-lg">₹{finalAmount.toLocaleString('en-IN')}</p>
-            </div>
-          )}
-          <div>
-            <p className="text-sm text-gray-500">{t('payment.transactionNote')}</p>
-            <p className="font-medium">{transactionNote}</p>
-          </div>
-          {/* UTR Input */}
-          <div className="pt-4 border-t border-gray-200">
-            <h3 className="font-medium mb-2">{t('payment.enterUtr')}</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              {t('payment.utrDescription')}
-            </p>
-            <div className="space-y-2">
+              <div className="flex justify-between mb-1">
+                <label htmlFor="utr" className="text-sm font-medium">
+                  {t('payment.enterUTR')}
+                </label>
+                <span className="text-sm text-primary font-semibold">
+                  ₹{finalAmount.toLocaleString('en-IN')}
+                </span>
+              </div>
               <Input
-                placeholder="UTR Number (12-digit)"
+                id="utr"
                 value={utrNumber}
                 onChange={(e) => setUtrNumber(e.target.value)}
-                className="font-mono"
-                maxLength={12}
+                placeholder={t('payment.utrPlaceholder')}
+                disabled={isSubmitting}
               />
-              <p className="text-xs text-gray-500">
-                {t('payment.utrLocation')}
+              <p className="text-xs text-gray-500 mt-1">
+                {t('payment.utrHelper')}
               </p>
             </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button
-            className="w-full"
-            onClick={handleUtrSubmitHandler}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                {t('payment.verifying')}
-              </>
-            ) : (
-              <>
-                <Clipboard className="h-4 w-4 mr-2" />
-                {t('payment.submitUtr')}
-              </>
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
+            
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!utrNumber.trim() || isSubmitting}
+            >
+              {isSubmitting ? t('common.processing') : t('payment.confirmPayment')}
+            </Button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

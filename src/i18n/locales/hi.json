@@ -1,4 +1,3 @@
-
 {
   "common": {
     "back": "वापस",
@@ -92,7 +91,17 @@
     "payUsingVPA": "वीपीए का उपयोग करके भुगतान करें",
     "enterUTR": "यूटीआर नंबर दर्ज करें",
     "confirmPayment": "भुगतान की पुष्टि करें",
-    "utrHelper": "यूटीआर नंबर एक अद्वितीय लेनदेन संदर्भ संख्या है"
+    "utrHelper": "यूटीआर नंबर एक अद्वितीय लेनदेन संदर्भ संख्या है",
+    "haveDiscount": "डिस्काउंट कोड है?",
+    "enterDiscountCode": "डिस्काउंट कोड दर्ज करें",
+    "apply": "लागू करें",
+    "remove": "हटाएं",
+    "discountApplied": "डिस्काउंट सफलतापूर्वक लागू किया गया",
+    "savedAmount": "आपने ₹{amount} बचाए",
+    "invalidDiscountCode": "अमान्य डिस्काउंट कोड",
+    "enterValidCode": "कृपया एक वैध डिस्काउंट कोड दर्ज करें",
+    "discountNotValid": "यह डिस्काउंट कोड मान्य नहीं है",
+    "errorValidatingDiscount": "डिस्काउंट कोड सत्यापित करने में त्रुटि"
   },
   "confirmation": {
     "title": "बुकिंग की पुष्टि हो गई!",

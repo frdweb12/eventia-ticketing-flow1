@@ -1,43 +1,22 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-import { Discount } from '../models';
-
-type DiscountRow = Database['public']['Tables']['discounts']['Row'];
-type DiscountInsert = Database['public']['Tables']['discounts']['Insert'];
+import { Discount } from '../models/discount.model';
 
 export const discountService = {
   /**
-   * Create a new discount code
+   * Get all active discounts
    */
-  async createDiscount(discount: Omit<DiscountInsert, 'id' | 'created_at' | 'uses_count'>) {
-    const { data, error } = await supabase
-      .from('discounts')
-      .insert([{
-        ...discount,
-        uses_count: 0,
-        is_active: true
-      }])
-      .select()
-      .single();
-      
-    if (error) throw error;
-    return data as Discount;
-  },
-  
-  /**
-   * Get all active discount codes
-   */
-  async getActiveDiscounts() {
+  async getAllActiveDiscounts() {
     const { data, error } = await supabase
       .from('discounts')
       .select('*')
-      .eq('is_active', true);
-      
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
     if (error) throw error;
-    return data as Discount[];
+    return data || [];
   },
-  
+
   /**
    * Validate a discount code
    */
@@ -48,55 +27,93 @@ export const discountService = {
       .eq('code', code.toUpperCase())
       .eq('is_active', true)
       .single();
-      
-    if (error) {
-      // No discount found with this code
-      return null;
+    
+    if (error) return null;
+    
+    // Check if discount is expired
+    if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+      return { 
+        valid: false, 
+        message: 'Discount code has expired' 
+      };
     }
     
-    const discount = data as Discount;
-    
-    // Check if discount has expired
-    if (discount.expiry_date && new Date(discount.expiry_date) < new Date()) {
-      return { valid: false, message: 'Discount code has expired' };
-    }
-    
-    // Check if discount has reached max uses
-    if (discount.uses_count >= discount.max_uses) {
-      return { valid: false, message: 'Discount code has reached maximum usage limit' };
+    // Check if maximum uses reached
+    if (data.uses_count >= data.max_uses) {
+      return { 
+        valid: false, 
+        message: 'Discount code has reached maximum usage limit' 
+      };
     }
     
     return { 
       valid: true, 
-      discount: {
-        code: discount.code,
-        amount: discount.amount,
-        id: discount.id
-      }
+      discount: data 
     };
   },
-  
+
   /**
-   * Apply a discount code to a booking
+   * Apply a discount code (increment uses_count)
    */
-  async applyDiscountCode(discountId: string) {
-    // First get the current discount
-    const { data: discount, error: discountError } = await supabase
+  async applyDiscountCode(id: string) {
+    const { data, error } = await supabase
       .from('discounts')
-      .select('*')
-      .eq('id', discountId)
+      .update({ uses_count: supabase.rpc('increment', { row_id: id }) })
+      .eq('id', id)
+      .select()
       .single();
-      
-    if (discountError) throw discountError;
     
-    // Increment the uses count
-    const { error: updateError } = await supabase
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Create a new discount code
+   */
+  async createDiscountCode(discount: Omit<Discount, 'id' | 'created_at' | 'uses_count'>) {
+    const { data, error } = await supabase
       .from('discounts')
-      .update({ uses_count: (discount?.uses_count || 0) + 1 })
-      .eq('id', discountId);
+      .insert([{
+        code: discount.code.toUpperCase(),
+        amount: discount.amount,
+        description: discount.description,
+        max_uses: discount.max_uses,
+        expiry_date: discount.expiry_date,
+        is_active: true,
+        uses_count: 0
+      }])
+      .select()
+      .single();
     
-    if (updateError) throw updateError;
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Update an existing discount code
+   */
+  async updateDiscountCode(id: string, discount: Partial<Discount>) {
+    const { data, error } = await supabase
+      .from('discounts')
+      .update(discount)
+      .eq('id', id)
+      .select()
+      .single();
     
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Delete a discount code
+   */
+  async deleteDiscountCode(id: string) {
+    const { error } = await supabase
+      .from('discounts')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
     return true;
   }
 };

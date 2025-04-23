@@ -1,4 +1,3 @@
-
 {
   "app": {
     "name": "Eventia"
@@ -7,7 +6,6 @@
     "home": "Home",
     "events": "Events",
     "event": "Event",
-    "events": "Events",
     "tickets": "Tickets",
     "ticket": "Ticket",
     "back": "Back",
@@ -23,14 +21,14 @@
     "filter": "Filter",
     "all": "All",
     "showing": "Showing",
-    "event": "Event",
     "noEventsFound": "No events found",
     "tryDifferent": "Try different search criteria or reset filters",
     "backToEvents": "Back to Events",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
     "menu": "Menu",
-    "close": "Close"
+    "close": "Close",
+    "bookNow": "Book Now"
   },
   "navbar": {
     "home": "Home",
@@ -107,7 +105,17 @@
     "submitUTR": "Submit UTR/Reference ID",
     "utrDescription": "After payment, enter the UTR or reference ID from your UPI app",
     "utrPlaceholder": "Enter UTR/Reference ID",
-    "confirmPayment": "Confirm Payment"
+    "confirmPayment": "Confirm Payment",
+    "haveDiscount": "Have a discount code?",
+    "enterDiscountCode": "Enter discount code",
+    "apply": "Apply",
+    "remove": "Remove",
+    "discountApplied": "Discount applied successfully",
+    "savedAmount": "You saved ₹{amount}",
+    "invalidDiscountCode": "Invalid discount code",
+    "enterValidCode": "Please enter a valid discount code",
+    "discountNotValid": "This discount code is not valid",
+    "errorValidatingDiscount": "Error validating discount code"
   },
   "confirmation": {
     "title": "Booking Confirmed!",
