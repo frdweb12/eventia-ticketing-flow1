@@ -36,11 +36,12 @@ const Payment = () => {
       try {
         setIsLoading(true);
         
-        // First get the booking info
+        // First get the booking info - make sure to include event_id
         const { data: bookingData, error: bookingError } = await supabase
           .from('bookings')
           .select(`
             id,
+            event_id,
             final_amount,
             seats
           `)
