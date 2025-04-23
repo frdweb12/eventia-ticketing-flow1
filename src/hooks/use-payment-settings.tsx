@@ -27,21 +27,20 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
       setError(null);
       
       try {
-        // Fetch the latest payment settings
+        // Fetch the latest UPI settings
         const { data, error } = await supabase
-          .from('payment_settings')
+          .from('upi_settings')
           .select('*')
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
+          .eq('isactive', true)
+          .maybeSingle();
           
         if (error) throw error;
         
         if (data) {
           setSettings({
-            upiVPA: data.upi_vpa,
-            discountCode: data.discount_code,
-            discountAmount: data.discount_amount,
+            upiVPA: data.upivpa,
+            discountCode: null, // UPI settings don't have a discount code
+            discountAmount: data.discountamount,
             updatedAt: data.updated_at
           });
         } else {
@@ -80,9 +79,9 @@ export const usePaymentSettings = (shouldRefresh: boolean = false) => {
     // Set up real-time subscription if shouldRefresh is true
     if (shouldRefresh) {
       const subscription = supabase
-        .channel('payment_settings_changes')
+        .channel('upi_settings_changes')
         .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'payment_settings' }, 
+          { event: '*', schema: 'public', table: 'upi_settings' }, 
           (payload) => {
             // Refresh settings on any change
             refreshSettings();

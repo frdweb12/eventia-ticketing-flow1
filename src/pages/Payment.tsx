@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -35,35 +36,51 @@ const Payment = () => {
       try {
         setIsLoading(true);
         
-        const { data, error } = await supabase
+        // First get the booking info
+        const { data: bookingData, error: bookingError } = await supabase
           .from('bookings')
           .select(`
             id,
-            event_title,
-            amount,
-            ticket_count,
-            delivery_details (*)
+            final_amount,
+            seats
           `)
           .eq('id', bookingId)
           .single();
           
-        if (error) throw error;
+        if (bookingError) throw bookingError;
         
-        if (data) {
-          setBookingDetails({
-            eventTitle: data.event_title,
-            amount: data.amount,
-            ticketCount: data.ticket_count,
-            deliveryDetails: data.delivery_details
-          });
-        } else {
+        if (!bookingData) {
           toast({
             title: "Booking not found",
             description: "Please try again or contact support",
             variant: "destructive"
           });
           navigate('/events');
+          return;
         }
+        
+        // Get the event details from booking's event_id
+        const { data: eventData, error: eventError } = await supabase
+          .from('events')
+          .select('title')
+          .eq('id', bookingData.event_id)
+          .single();
+          
+        if (eventError) throw eventError;
+        
+        // Get delivery details if available
+        const { data: deliveryData } = await supabase
+          .from('delivery_details')
+          .select('*')
+          .eq('booking_id', bookingId)
+          .maybeSingle();
+          
+        setBookingDetails({
+          eventTitle: eventData.title,
+          amount: bookingData.final_amount,
+          ticketCount: Array.isArray(bookingData.seats) ? bookingData.seats.length : 1,
+          deliveryDetails: deliveryData || null
+        });
       } catch (error) {
         console.error('Error fetching booking details:', error);
         toast({
