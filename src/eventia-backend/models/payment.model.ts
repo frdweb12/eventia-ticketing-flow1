@@ -1,4 +1,3 @@
-
 export interface Payment {
   id: string;
   booking_id: string;
@@ -12,9 +11,9 @@ export interface Payment {
 
 export interface UpiSettings {
   id: string;
-  upiVPA: string;
-  discountAmount: number;
-  isActive: boolean;
+  upiVPA: string; // Matches database column 'upivpa'
+  discountAmount: number; // Matches database column 'discountamount'
+  isActive: boolean; // Matches database column 'isactive'
   created_at: string;
   updated_at: string;
 }

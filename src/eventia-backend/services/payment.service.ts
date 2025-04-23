@@ -89,7 +89,16 @@ export const paymentService = {
       .eq('isactive', true)
       .maybeSingle();
     if (error) return null;
-    return data as UpiSettings | null;
+    
+    // Type cast to match the UpiSettings interface
+    return data ? {
+      id: data.id,
+      upiVPA: data.upivpa,
+      discountAmount: data.discountamount,
+      isActive: data.isactive,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    } : null;
   },
 
   /**
@@ -99,13 +108,24 @@ export const paymentService = {
     const { data, error } = await supabase
       .from('upi_settings')
       .update({
-        ...settings,
+        upivpa: settings.upiVPA,
+        discountamount: settings.discountAmount,
+        isactive: settings.isActive,
         updated_at: new Date().toISOString()
       })
       .eq('id', settings.id)
       .select()
       .single();
     if (error) throw error;
-    return data as UpiSettings;
+    
+    // Type cast to match the UpiSettings interface
+    return data ? {
+      id: data.id,
+      upiVPA: data.upivpa,
+      discountAmount: data.discountamount,
+      isActive: data.isactive,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    } : null as never;
   }
 };
