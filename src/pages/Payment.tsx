@@ -77,7 +77,7 @@ const Payment = () => {
           .maybeSingle();
           
         setBookingDetails({
-          eventTitle: eventData.title,
+          eventTitle: eventData?.title || "Event",
           amount: bookingData.final_amount,
           ticketCount: Array.isArray(bookingData.seats) ? bookingData.seats.length : 1,
           deliveryDetails: deliveryData || null
@@ -88,6 +88,13 @@ const Payment = () => {
           title: "Error loading booking",
           description: "Please try again later",
           variant: "destructive"
+        });
+        // Provide fallback booking details to prevent null errors
+        setBookingDetails({
+          eventTitle: "Event",
+          amount: 0,
+          ticketCount: 1,
+          deliveryDetails: null
         });
       } finally {
         setIsLoading(false);
@@ -126,6 +133,11 @@ const Payment = () => {
     );
   }
 
+  // Ensure bookingDetails isn't null before trying to access its properties
+  const eventTitle = bookingDetails?.eventTitle || "Event";
+  const amount = bookingDetails?.amount || 0;
+  const ticketCount = bookingDetails?.ticketCount || 1;
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -147,9 +159,9 @@ const Payment = () => {
           <div className="max-w-3xl mx-auto">
             <div className="mb-6">
               <h1 className="text-2xl font-bold">{t('payment.title') || 'Payment'}</h1>
-              {bookingDetails.eventTitle && (
+              {eventTitle && (
                 <p className="text-gray-600">
-                  {t('payment.subtitle', { eventTitle: bookingDetails.eventTitle }) || `Complete your payment for ${bookingDetails.eventTitle}`}
+                  {t('payment.subtitle', { eventTitle }) || `Complete your payment for ${eventTitle}`}
                 </p>
               )}
               
@@ -157,12 +169,12 @@ const Payment = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-gray-500">{t('payment.totalAmount') || 'Total Amount'}</p>
-                    <p className="text-xl font-bold">₹{bookingDetails.amount.toLocaleString('en-IN')}</p>
+                    <p className="text-xl font-bold">₹{amount.toLocaleString('en-IN')}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t('payment.tickets') || 'Tickets'}</p>
                     <p className="font-medium">
-                      {bookingDetails.ticketCount} {bookingDetails.ticketCount === 1 ? (t('common.ticket') || 'Ticket') : (t('common.tickets') || 'Tickets')}
+                      {ticketCount} {ticketCount === 1 ? (t('common.ticket') || 'Ticket') : (t('common.tickets') || 'Tickets')}
                     </p>
                   </div>
                 </div>
@@ -171,7 +183,7 @@ const Payment = () => {
             
             <UpiPayment 
               bookingId={bookingId || '0'}
-              amount={bookingDetails.amount}
+              amount={amount}
               onUtrSubmit={handleUtrSubmit}
             />
           </div>
