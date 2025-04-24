@@ -63,8 +63,12 @@ export const discountService = {
       .eq('id', id)
       .single();
     
+    if (!currentData) {
+      throw new Error('Discount not found');
+    }
+    
     // Then increment it manually
-    const newUsesCount = (currentData?.uses_count || 0) + 1;
+    const newUsesCount = currentData.uses_count + 1;
     
     const { data, error } = await supabase
       .from('discounts')

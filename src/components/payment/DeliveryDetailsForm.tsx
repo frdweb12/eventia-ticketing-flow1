@@ -10,7 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ArrowLeft, User, MapPin, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define form schema with validation
 const deliveryFormSchema = z.object({
@@ -40,11 +40,6 @@ const DeliveryDetailsForm: React.FC<DeliveryDetailsFormProps> = ({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize Supabase client
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  
   const form = useForm<DeliveryFormValues>({
     resolver: zodResolver(deliveryFormSchema),
     defaultValues: {

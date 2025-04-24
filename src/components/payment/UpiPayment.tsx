@@ -1,13 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { ArrowRight, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { paymentService } from '@/eventia-backend/services/payment.service';
+import { useTranslation } from 'react-i18next';
 import QRCodeGenerator from './QRCodeGenerator';
-import { usePaymentSettings } from '@/hooks/use-payment-settings';
-import DiscountForm from './DiscountForm';
-import { Separator } from '@/components/ui/separator';
+
+interface UpiSettings {
+  upiVPA: string;
+  discountAmount: number;
+}
 
 interface UpiPaymentProps {
   bookingId: string;
@@ -15,152 +22,182 @@ interface UpiPaymentProps {
   onUtrSubmit: (utr: string) => void;
 }
 
-const UpiPayment: React.FC<UpiPaymentProps> = ({ bookingId, amount, onUtrSubmit }) => {
+const UpiPayment = ({ bookingId, amount, onUtrSubmit }: UpiPaymentProps) => {
   const { t } = useTranslation();
-  const [utrNumber, setUtrNumber] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [discountedAmount, setDiscountedAmount] = useState(amount);
-  const [appliedCode, setAppliedCode] = useState('');
-  const { settings, isLoading } = usePaymentSettings(true);
+  const navigate = useNavigate();
+  const [upiId, setUpiId] = useState<string>('');
+  const [utrNumber, setUtrNumber] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [remainingTime, setRemainingTime] = useState<number>(600); // 10 minutes in seconds
 
-  // Reset discounted amount if original amount changes
   useEffect(() => {
-    if (!appliedCode) {
-      setDiscountedAmount(amount);
-    }
-  }, [amount, appliedCode]);
+    const fetchUpiSettings = async () => {
+      try {
+        setIsLoading(true);
+        const settings = await paymentService.getUpiSettings();
+        
+        if (settings) {
+          setUpiId(settings.upiVPA);
+        } else {
+          setUpiId('eventia@okicici');
+        }
+      } catch (error) {
+        console.error('Error fetching UPI settings:', error);
+        setUpiId('eventia@okicici'); // Fallback UPI ID
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleApplyDiscount = (discountAmount: number, code: string) => {
-    if (discountAmount > 0 && code) {
-      const newAmount = Math.max(amount - discountAmount, 0);
-      setDiscountedAmount(newAmount);
-      setAppliedCode(code);
-    } else {
-      setDiscountedAmount(amount);
-      setAppliedCode('');
-    }
+    fetchUpiSettings();
+  }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    if (remainingTime <= 0) return;
+    
+    const timer = setInterval(() => {
+      setRemainingTime(prev => prev - 1);
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [remainingTime]);
+
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!utrNumber.trim()) {
+    if (!utrNumber || utrNumber.length < 6) {
       toast({
-        title: "Error",
-        description: "Please enter a valid UTR number",
+        title: t('payment.enterValidUtr') || 'Please enter a valid UTR number',
         variant: "destructive",
       });
       return;
     }
     
-    setIsSubmitting(true);
+    setSubmitting(true);
     
-    // In a real app, we would verify the UTR number here
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onUtrSubmit(utrNumber);
-    }, 1500);
-  };
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin h-6 w-6 border-t-2 border-primary rounded-full"></div>
-      </div>
-    );
-  }
-
-  const upiVpa = settings?.upiVPA || 'eventia@upi';
-  const finalAmount = Math.max(discountedAmount, 0);
-  
-  return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h2 className="text-xl font-bold mb-6">{t('payment.upiPayment') || 'UPI Payment'}</h2>
+    try {
+      // Create payment record in the database
+      await paymentService.createPayment({
+        booking_id: bookingId,
+        utr_number: utrNumber,
+        amount: amount,
+        status: 'pending'
+      });
       
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="border rounded-lg p-4 flex flex-col items-center">
-          <h3 className="text-lg font-medium mb-4">{t('payment.scanQR') || 'Scan QR Code'}</h3>
-          <QRCodeGenerator
-            upiVPA={upiVpa}
-            amount={finalAmount}
-            transactionNote={`Booking #${bookingId}`}
-          />
-          
-          <div className="mt-4 w-full">
-            <div className="text-sm text-gray-500 mb-1">{t('payment.payeeDetails') || 'Payee Details'}</div>
-            <div className="bg-gray-50 p-3 rounded-md space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.merchantName') || 'Merchant Name'}</span>
-                <span className="text-sm font-medium">Eventia</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.merchantVPA') || 'UPI ID'}</span>
-                <span className="text-sm font-medium">{upiVpa}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.transactionNote') || 'Transaction Note'}</span>
-                <span className="text-sm font-medium">Booking #{bookingId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('payment.totalAmount') || 'Total Amount'}</span>
-                <span className="text-sm font-medium">₹{finalAmount.toLocaleString('en-IN')}</span>
-              </div>
-            </div>
+      // Call the callback to navigate to confirmation
+      onUtrSubmit(utrNumber);
+    } catch (error) {
+      console.error('Error submitting payment:', error);
+      toast({
+        title: t('payment.errorProcessing') || 'Error processing payment',
+        description: t('payment.tryAgain') || 'Please try again',
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>{t('payment.upiPayment') || 'UPI Payment'}</CardTitle>
+          <div className="flex items-center text-amber-600">
+            <Clock className="h-4 w-4 mr-1" />
+            <span className="text-sm font-medium">{formatTime(remainingTime)}</span>
           </div>
         </div>
-        
-        <div className="border rounded-lg p-4">
-          <h3 className="text-lg font-medium mb-4">{t('payment.submitUTR') || 'Submit UTR Number'}</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            {t('payment.utrDescription') || 'After making the payment, please enter the UTR number you received.'}
-          </p>
-          
-          <DiscountForm 
-            onApplyDiscount={handleApplyDiscount} 
-            disabled={isSubmitting}
-          />
-          
-          {appliedCode && (
-            <div className="mt-2 mb-4 text-green-600 text-sm">
-              Discount of ₹{(amount - discountedAmount).toLocaleString('en-IN')} applied!
-            </div>
-          )}
-          
-          <Separator className="my-4" />
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1">
-                <label htmlFor="utr" className="text-sm font-medium">
-                  {t('payment.enterUTR') || 'Enter UTR Number'}
-                </label>
-                <span className="text-sm text-primary font-semibold">
-                  ₹{finalAmount.toLocaleString('en-IN')}
-                </span>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <p className="text-sm text-gray-600 mb-2">{t('payment.scanToPayUpi') || 'Scan this QR code to pay via UPI'}</p>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
-              <Input
-                id="utr"
-                value={utrNumber}
-                onChange={(e) => setUtrNumber(e.target.value)}
-                placeholder={t('payment.utrPlaceholder') || 'Enter 12-digit UTR number'}
-                disabled={isSubmitting}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {t('payment.utrHelper') || 'The UTR number is provided by your bank after payment is completed'}
-              </p>
+            ) : (
+              <div className="flex justify-center">
+                <QRCodeGenerator 
+                  value={`upi://pay?pa=${upiId}&am=${amount}&pn=Eventia&tn=TicketBooking`} 
+                  size={200}
+                  paymentDetails={{
+                    upiId: upiId,
+                    amount: amount,
+                    description: 'Ticket Booking'
+                  }}
+                />
+              </div>
+            )}
+          </div>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="utr" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('payment.utrNumber') || 'UTR Number (Transaction Reference)'}
+                </label>
+                <Input
+                  id="utr"
+                  value={utrNumber}
+                  onChange={(e) => setUtrNumber(e.target.value)}
+                  placeholder={t('payment.enterUtr') || 'Enter UTR after payment'}
+                  className="w-full"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t('payment.utrHelp') || 'The UTR number will be provided by your UPI app after successful payment'}
+                </p>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/events')}
+                >
+                  {t('common.cancel') || 'Cancel'}
+                </Button>
+                
+                <Button 
+                  type="submit" 
+                  className="gap-2" 
+                  disabled={submitting || !utrNumber || remainingTime <= 0}
+                >
+                  {submitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      {t('payment.processing') || 'Processing...'}
+                    </>
+                  ) : (
+                    <>
+                      {t('payment.confirmPayment') || 'Confirm Payment'}
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-            
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={!utrNumber.trim() || isSubmitting}
-            >
-              {isSubmitting ? (t('common.processing') || 'Processing...') : (t('payment.confirmPayment') || 'Confirm Payment')}
-            </Button>
           </form>
+          
+          <div className="border-t pt-4 mt-4">
+            <p className="text-amber-600 text-sm flex items-center">
+              <Clock className="h-4 w-4 mr-1" />
+              {t('payment.timeLimit') || 'Please complete the payment within the time limit'}
+            </p>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,51 +1,33 @@
 
-import React, { useEffect, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card } from '@/components/ui/card';
+import React from 'react';
+import QRCode from 'qrcode.react';
 
-interface QRCodeGeneratorProps {
-  upiVPA: string;
+interface PaymentDetails {
+  upiId: string;
   amount: number;
-  payeeName?: string;
-  transactionNote?: string;
+  description: string;
 }
 
-const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
-  upiVPA,
-  amount,
-  payeeName = 'Eventia',
-  transactionNote = '',
-}) => {
-  const [qrValue, setQrValue] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
+interface QRCodeGeneratorProps {
+  value: string;
+  size: number;
+  paymentDetails: PaymentDetails;
+}
 
-  useEffect(() => {
-    if (upiVPA && amount) {
-      // Construct UPI payment URL
-      const upiUrl = `upi://pay?pa=${upiVPA}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-      setQrValue(upiUrl);
-      setIsLoading(false);
-    }
-  }, [upiVPA, amount, payeeName, transactionNote]);
-
-  if (isLoading) {
-    return (
-      <Card className="flex items-center justify-center p-6 bg-gray-50 w-52 h-52 md:w-64 md:h-64 mx-auto">
-        <Skeleton className="h-40 w-40 md:h-48 md:w-48" />
-      </Card>
-    );
-  }
-
+const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ value, size, paymentDetails }) => {
   return (
-    <Card className="flex items-center justify-center p-6 bg-gray-50 w-52 h-52 md:w-64 md:h-64 mx-auto">
-      <QRCodeSVG
-        value={qrValue}
-        size={200}
-        level="H"
-        includeMargin={true}
-      />
-    </Card>
+    <div className="flex flex-col items-center">
+      <QRCode value={value} size={size} />
+      <div className="mt-4 text-center">
+        <p className="font-medium">UPI ID</p>
+        <p className="text-primary text-lg font-semibold">
+          {paymentDetails.upiId}
+        </p>
+        <p className="text-gray-600 text-sm mt-2">
+          Amount: ₹{paymentDetails.amount.toLocaleString('en-IN')}
+        </p>
+      </div>
+    </div>
   );
 };
 
