@@ -5,10 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { ArrowRight, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { paymentService } from '@/eventia-backend/services/payment.service';
 import { useTranslation } from 'react-i18next';
 import QRCodeGenerator from './QRCodeGenerator';
+import * as paymentApi from '@/services/api/paymentApi';
 
 interface UpiSettings {
   upiVPA: string;
@@ -34,10 +33,10 @@ const UpiPayment = ({ bookingId, amount, onUtrSubmit }: UpiPaymentProps) => {
     const fetchUpiSettings = async () => {
       try {
         setIsLoading(true);
-        const settings = await paymentService.getUpiSettings();
+        const response = await paymentApi.getUpiSettings();
         
-        if (settings) {
-          setUpiId(settings.upiVPA);
+        if (response.data?.upiVPA) {
+          setUpiId(response.data.upiVPA);
         } else {
           setUpiId('eventia@okicici');
         }
@@ -82,11 +81,10 @@ const UpiPayment = ({ bookingId, amount, onUtrSubmit }: UpiPaymentProps) => {
     setSubmitting(true);
     
     try {
-      await paymentService.createPayment({
+      await paymentApi.createPayment({
         booking_id: bookingId,
-        utr_number: utrNumber,
         amount: amount,
-        status: 'pending'
+        utr_number: utrNumber,
       });
       
       onUtrSubmit(utrNumber);
