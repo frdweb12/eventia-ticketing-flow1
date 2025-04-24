@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -15,7 +14,6 @@ import { createClient } from '@supabase/supabase-js';
 import QRCodeGenerator from '@/components/payment/QRCodeGenerator';
 import { usePaymentSettings } from '@/hooks/use-payment-settings';
 
-// Form schema for UPI VPA validation
 const upiSchema = z.object({
   merchantName: z.string().min(3, "Merchant name must be at least 3 characters"),
   vpa: z.string()
@@ -34,11 +32,9 @@ const AdminUpiManagement = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleString());
   const [configError, setConfigError] = useState<string | null>(null);
   
-  // Initialize Supabase client with error handling
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
   
-  // Check if Supabase credentials are available
   useEffect(() => {
     if (!supabaseUrl || !supabaseKey) {
       setConfigError('Supabase configuration is missing. Please connect your project to Supabase first.');
@@ -47,10 +43,8 @@ const AdminUpiManagement = () => {
     }
   }, [supabaseUrl, supabaseKey]);
   
-  // Only create the client when credentials are available
   const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
   
-  // Get current payment settings with modified hook that handles missing Supabase config
   const { settings, isLoading, error, refreshSettings } = usePaymentSettings();
   
   const form = useForm<UpiFormValues>({
@@ -64,7 +58,6 @@ const AdminUpiManagement = () => {
     }
   });
 
-  // When settings are loaded, update the form
   useEffect(() => {
     if (settings) {
       form.reset({
@@ -90,7 +83,6 @@ const AdminUpiManagement = () => {
     }
     
     try {
-      // In a real application, this would update the UPI details in the database
       const { error } = await supabase
         .from('payment_settings')
         .insert({
@@ -345,10 +337,13 @@ const AdminUpiManagement = () => {
                   {form.getValues('vpa') ? (
                     <div className="mb-4">
                       <QRCodeGenerator 
-                        upiVPA={form.getValues('vpa')}
-                        amount={100}
-                        payeeName={form.getValues('merchantName')}
-                        transactionNote="Sample Transaction"
+                        value={`upi://pay?pa=${form.getValues('vpa')}&am=100&pn=${form.getValues('merchantName')}&tn=Sample Transaction`}
+                        size={200}
+                        paymentDetails={{
+                          upiId: form.getValues('vpa'),
+                          amount: 100,
+                          description: 'Sample Transaction'
+                        }}
                       />
                     </div>
                   ) : (

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -53,7 +52,6 @@ const UpiPayment = ({ bookingId, amount, onUtrSubmit }: UpiPaymentProps) => {
     fetchUpiSettings();
   }, []);
 
-  // Countdown timer
   useEffect(() => {
     if (remainingTime <= 0) return;
     
@@ -84,7 +82,6 @@ const UpiPayment = ({ bookingId, amount, onUtrSubmit }: UpiPaymentProps) => {
     setSubmitting(true);
     
     try {
-      // Create payment record in the database
       await paymentService.createPayment({
         booking_id: bookingId,
         utr_number: utrNumber,
@@ -92,7 +89,6 @@ const UpiPayment = ({ bookingId, amount, onUtrSubmit }: UpiPaymentProps) => {
         status: 'pending'
       });
       
-      // Call the callback to navigate to confirmation
       onUtrSubmit(utrNumber);
     } catch (error) {
       console.error('Error submitting payment:', error);

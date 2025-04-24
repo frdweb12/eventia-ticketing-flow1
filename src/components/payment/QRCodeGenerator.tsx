@@ -1,6 +1,6 @@
 
 import React from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PaymentDetails {
   upiId: string;
@@ -17,7 +17,7 @@ interface QRCodeGeneratorProps {
 const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ value, size, paymentDetails }) => {
   return (
     <div className="flex flex-col items-center">
-      <QRCode value={value} size={size} />
+      <QRCodeSVG value={value} size={size} />
       <div className="mt-4 text-center">
         <p className="font-medium">UPI ID</p>
         <p className="text-primary text-lg font-semibold">
