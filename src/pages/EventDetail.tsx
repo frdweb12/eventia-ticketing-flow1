@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +47,11 @@ const EventDetail = () => {
       navigate('/not-found');
     }
   }, [id, navigate]);
+
+  // Add the missing handleSeatSelect function
+  const handleSeatSelect = (seats: Seat[]) => {
+    setSelectedSeats(seats);
+  };
 
   const handleAddToCart = () => {
     if (activeTab === 'seating' && selectedSeats.length === 0) {
