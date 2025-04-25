@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +34,6 @@ const EventDetail = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Find the event or match by ID
     const foundEvent = events.find(e => e.id === id);
     const foundMatch = iplMatches.find(m => m.id === id);
     
@@ -44,7 +42,6 @@ const EventDetail = () => {
     if (foundItem) {
       setEvent(foundItem);
     } else {
-      // Redirect to a "not found" page or display an error message
       navigate('/not-found');
     }
   }, [id, navigate]);
@@ -70,32 +67,27 @@ const EventDetail = () => {
 
     setIsProcessing(true);
 
-    // Simulate creating a booking on the server
-    setTimeout(() => {
-      setIsProcessing(false);
-      
-      // Create a mock booking ID
-      const mockBookingId = `BKG${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
-      
-      // Calculate total amount
-      const totalAmount = activeTab === 'info' 
-        ? selectedTicket.price * quantity
-        : selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
-      
-      // Navigate to payment page with booking details
-      navigate(`/payment/${mockBookingId}`, {
-        state: {
-          bookingDetails: {
-            eventTitle: event?.title,
-            eventDate: event?.date,
-            eventTime: event?.time,
-            venue: event?.venue,
-            amount: totalAmount,
-            ticketCount: activeTab === 'info' ? quantity : selectedSeats.length
-          }
+    const mockBookingId = `BKG${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    
+    const totalAmount = activeTab === 'info' 
+      ? selectedTicket.price * quantity
+      : selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+
+    navigate('/delivery-details', {
+      state: {
+        bookingDetails: {
+          bookingId: mockBookingId,
+          eventTitle: event?.title,
+          eventDate: event?.date,
+          eventTime: event?.time,
+          venue: event?.venue,
+          amount: totalAmount,
+          ticketCount: activeTab === 'info' ? quantity : selectedSeats.length
         }
-      });
-    }, 1500);
+      }
+    });
+    
+    setIsProcessing(false);
   };
 
   if (!event) {
