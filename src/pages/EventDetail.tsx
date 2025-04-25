@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Seat {
   id: string;
@@ -67,7 +68,7 @@ const EventDetail = () => {
 
     setIsProcessing(true);
 
-    const mockBookingId = `BKG${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    const bookingId = uuidv4();
     
     const totalAmount = activeTab === 'info' 
       ? selectedTicket.price * quantity
@@ -76,7 +77,7 @@ const EventDetail = () => {
     navigate('/delivery-details', {
       state: {
         bookingDetails: {
-          bookingId: mockBookingId,
+          bookingId,
           eventTitle: event?.title,
           eventDate: event?.date,
           eventTime: event?.time,
@@ -98,68 +99,104 @@ const EventDetail = () => {
     );
   }
 
-  const handleSeatSelect = (seats: Seat[]) => {
-    setSelectedSeats(seats);
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
 
-      <main className="flex-grow bg-gray-50 pt-16 pb-12">
+      <main className="flex-grow bg-gradient-to-b from-gray-900 to-gray-800 pt-16 pb-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-4">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+            <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 text-white">
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t('common.back')}
             </Button>
             <LanguageSwitcher />
           </div>
 
-          <Card className="overflow-hidden">
-            <div className="md:flex">
-              <div className="md:w-1/2">
-                <img
-                  src={(event as Event).posterImage || event.image}
-                  alt={event.title}
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              <div className="md:w-1/2 p-6">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-2xl font-bold">{event.title}</CardTitle>
+          <div className="lg:flex gap-8">
+            <div className="lg:w-2/3">
+              <Card className="bg-transparent border-none text-white shadow-none">
+                <div className="aspect-video overflow-hidden rounded-lg mb-6">
+                  <img
+                    src={(event as Event).posterImage || event.image}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                
+                <CardHeader className="px-0">
+                  <CardTitle className="text-3xl font-bold">{event.title}</CardTitle>
                   {'teams' in event && (
-                    <CardDescription className="text-gray-500">
+                    <CardDescription className="text-gray-300 text-lg">
                       {event.teams.team1.name} vs {event.teams.team2.name}
                     </CardDescription>
                   )}
                 </CardHeader>
-                <CardContent className="text-gray-700">
-                  {'description' in event && <p className="mb-4">{event.description}</p>}
-                  <div className="flex items-center mb-2">
-                    <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                    {event.date}
-                  </div>
-                  <div className="flex items-center mb-2">
-                    <Clock className="h-4 w-4 mr-2 text-gray-400" />
-                    {event.time}
-                  </div>
-                  <div className="flex items-center mb-2">
-                    <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                    {event.venue}
-                  </div>
-                  {'duration' in event && (
-                    <div className="flex items-center mb-4">
-                      <Tag className="h-4 w-4 mr-2 text-gray-400" />
-                      Duration: {event.duration}
+
+                <CardContent className="px-0 space-y-6">
+                  {'description' in event && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">About the Event</h3>
+                      <p className="text-gray-300">{event.description}</p>
                     </div>
                   )}
 
-                  <Tabs defaultValue="info" className="mt-6" onValueChange={setActiveTab}>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center">
+                        <Calendar className="h-5 w-5 mr-3 text-primary" />
+                        <div>
+                          <p className="font-semibold">Date</p>
+                          <p className="text-gray-300">{event.date}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <Clock className="h-5 w-5 mr-3 text-primary" />
+                        <div>
+                          <p className="font-semibold">Time</p>
+                          <p className="text-gray-300">{event.time}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center">
+                        <MapPin className="h-5 w-5 mr-3 text-primary" />
+                        <div>
+                          <p className="font-semibold">Venue</p>
+                          <p className="text-gray-300">{event.venue}</p>
+                        </div>
+                      </div>
+                      
+                      {'duration' in event && (
+                        <div className="flex items-center">
+                          <Tag className="h-5 w-5 mr-3 text-primary" />
+                          <div>
+                            <p className="font-semibold">Duration</p>
+                            <p className="text-gray-300">{event.duration}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="lg:w-1/3 mt-6 lg:mt-0">
+              <Card className="sticky top-24">
+                <CardHeader>
+                  <CardTitle>Book Tickets</CardTitle>
+                </CardHeader>
+                
+                <CardContent>
+                  <Tabs defaultValue="info" className="w-full" onValueChange={setActiveTab}>
                     <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="info">General Admission</TabsTrigger>
+                      <TabsTrigger value="info">General</TabsTrigger>
                       <TabsTrigger value="seating">Select Seats</TabsTrigger>
                     </TabsList>
+
                     <TabsContent value="info">
                       <div className="mb-4">
                         <h3 className="text-lg font-semibold mb-2">{t('eventDetails.tickets')}</h3>
@@ -250,17 +287,17 @@ const EventDetail = () => {
                     </TabsContent>
                   </Tabs>
                 </CardContent>
+              </Card>
+
+              <div className="mt-4">
+                <Link to={`/venue-preview/${id}`}>
+                  <Button variant="outline" size="lg" className="w-full">
+                    <Eye className="h-5 w-5 mr-2" />
+                    {t('events.viewVenue')}
+                  </Button>
+                </Link>
               </div>
             </div>
-          </Card>
-          
-          <div className="mt-6 text-center">
-            <Link to={`/venue-preview/${id}`}>
-              <Button variant="secondary" size="lg" className="flex items-center">
-                <Eye className="h-5 w-5 mr-2" />
-                {t('events.viewVenue')}
-              </Button>
-            </Link>
           </div>
         </div>
       </main>

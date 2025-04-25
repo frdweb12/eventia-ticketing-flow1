@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -12,7 +11,6 @@ import { ArrowLeft, User, MapPin, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define form schema with validation
 const deliveryFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -65,7 +63,6 @@ const DeliveryDetailsForm: React.FC<DeliveryDetailsFormProps> = ({
           address: data.address,
           city: data.city,
           pincode: data.pincode,
-          created_at: new Date().toISOString(),
         });
 
       if (error) throw error;
