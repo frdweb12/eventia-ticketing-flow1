@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Discount } from '../models/discount.model';
 
@@ -129,5 +128,56 @@ export const discountService = {
     
     if (error) throw error;
     return true;
+  },
+
+  /**
+   * Get auto-apply discount for a specific event
+   */
+  async getAutoApplyDiscountForEvent(eventId: string) {
+    const { data, error } = await supabase
+      .from('discounts')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('is_active', true)
+      .eq('auto_apply', true)
+      .single();
+    
+    if (error) return null;
+    return data;
+  },
+
+  /**
+   * Validate an auto-apply discount
+   */
+  async validateAutoApplyDiscount(discountId: string) {
+    const { data, error } = await supabase
+      .from('discounts')
+      .select('*')
+      .eq('id', discountId)
+      .eq('is_active', true)
+      .single();
+    
+    if (error || !data) return null;
+    
+    // Check if discount is expired
+    if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+      return { 
+        valid: false, 
+        message: 'Discount code has expired' 
+      };
+    }
+    
+    // Check if maximum uses reached
+    if (data.uses_count >= data.max_uses) {
+      return { 
+        valid: false, 
+        message: 'Discount code has reached maximum usage limit' 
+      };
+    }
+    
+    return { 
+      valid: true, 
+      discount: data 
+    };
   }
 };

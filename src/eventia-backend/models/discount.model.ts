@@ -9,4 +9,7 @@ export interface Discount {
   expiry_date?: string;
   is_active: boolean;
   created_at: string;
+  auto_apply?: boolean;
+  event_id?: string;
+  priority?: number;
 }

@@ -1,21 +1,57 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { discountService } from '@/eventia-backend/services/discount.service';
+import { Badge } from '@/components/ui/badge';
+import { TagIcon } from 'lucide-react';
 
 interface DiscountFormProps {
-  onApplyDiscount: (amount: number, code: string) => void;
+  eventId?: string;
+  onApplyDiscount: (amount: number, code: string, isAutoApplied?: boolean) => void;
   disabled?: boolean;
+  initialDiscount?: { 
+    amount: number; 
+    code: string; 
+    isAutoApplied?: boolean;
+  };
 }
 
-const DiscountForm: React.FC<DiscountFormProps> = ({ onApplyDiscount, disabled = false }) => {
+const DiscountForm: React.FC<DiscountFormProps> = ({ 
+  eventId, 
+  onApplyDiscount, 
+  disabled = false,
+  initialDiscount 
+}) => {
   const { t } = useTranslation();
   const [discountCode, setDiscountCode] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
+  const [autoApplyDiscount, setAutoApplyDiscount] = useState<any>(null);
+
+  // Try to fetch auto-apply discount when component mounts
+  useEffect(() => {
+    const fetchAutoApplyDiscount = async () => {
+      if (eventId) {
+        const autoDiscount = await discountService.getAutoApplyDiscountForEvent(eventId);
+        if (autoDiscount) {
+          setAutoApplyDiscount(autoDiscount);
+          onApplyDiscount(autoDiscount.amount, autoDiscount.code, true);
+        }
+      }
+    };
+
+    // If no initial discount is provided, try to fetch auto-apply
+    if (!initialDiscount) {
+      fetchAutoApplyDiscount();
+    } else {
+      // If initial discount is provided (likely from parent component)
+      setDiscountCode(initialDiscount.code);
+      setIsApplied(true);
+    }
+  }, [eventId, onApplyDiscount, initialDiscount]);
 
   const handleApplyDiscount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +78,8 @@ const DiscountForm: React.FC<DiscountFormProps> = ({ onApplyDiscount, disabled =
         return;
       }
       
-      onApplyDiscount(result.discount.amount, result.discount.code);
+      // Manual discount takes precedence over auto-apply
+      onApplyDiscount(result.discount.amount, result.discount.code, false);
       setIsApplied(true);
       
       toast({
@@ -67,6 +104,29 @@ const DiscountForm: React.FC<DiscountFormProps> = ({ onApplyDiscount, disabled =
     onApplyDiscount(0, '');
   };
 
+  // Render auto-applied discount
+  if (autoApplyDiscount) {
+    return (
+      <div className="mt-4 mb-2">
+        <div className="flex items-center justify-between bg-green-50 p-2 rounded border border-green-200">
+          <div className="flex items-center">
+            <TagIcon className="h-5 w-5 mr-2 text-green-600" />
+            <div>
+              <span className="text-green-700 font-medium">{autoApplyDiscount.code}</span>
+              <Badge variant="outline" className="ml-2 bg-green-100 text-green-800">
+                Auto Applied
+              </Badge>
+              <p className="text-xs text-green-600">
+                {t('payment.autoDiscountApplied', { amount: autoApplyDiscount.amount })}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default discount form
   return (
     <div className="mt-4 mb-2">
       <h3 className="text-sm font-medium mb-2">{t('payment.haveDiscount')}</h3>

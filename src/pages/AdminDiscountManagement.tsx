@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -16,6 +15,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { discountService } from '@/eventia-backend/services/discount.service';
 import { Discount } from '@/eventia-backend/models/discount.model';
 import DiscountList from '@/components/admin/DiscountList';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const discountSchema = z.object({
   code: z.string().min(3, "Discount code must be at least 3 characters"),
@@ -23,6 +25,9 @@ const discountSchema = z.object({
   description: z.string().optional(),
   maxUses: z.coerce.number().min(1, "Maximum uses must be at least 1"),
   expiryDate: z.string().optional(),
+  autoApply: z.boolean().optional(),
+  eventId: z.string().optional(),
+  priority: z.coerce.number().min(0).max(100).optional(),
 });
 
 type DiscountFormValues = z.infer<typeof discountSchema>;
@@ -33,8 +38,8 @@ const AdminDiscountManagement = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [events, setEvents] = useState([]);
 
-  // Initialize form
   const form = useForm<DiscountFormValues>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
@@ -43,10 +48,12 @@ const AdminDiscountManagement = () => {
       description: '',
       maxUses: 100,
       expiryDate: '',
+      autoApply: false,
+      eventId: '',
+      priority: 0,
     }
   });
 
-  // Fetch all active discounts
   const fetchDiscounts = async () => {
     try {
       const data = await discountService.getAllActiveDiscounts();
@@ -64,7 +71,6 @@ const AdminDiscountManagement = () => {
   useEffect(() => {
     fetchDiscounts();
 
-    // Set up realtime subscription
     const channel = supabase
       .channel('discounts_changes')
       .on('postgres_changes', 
@@ -87,6 +93,9 @@ const AdminDiscountManagement = () => {
       description: '',
       maxUses: 100,
       expiryDate: '',
+      autoApply: false,
+      eventId: '',
+      priority: 0,
     });
     setIsEditMode(false);
     setSelectedDiscount(null);
@@ -99,6 +108,9 @@ const AdminDiscountManagement = () => {
       description: discount.description || '',
       maxUses: discount.max_uses,
       expiryDate: discount.expiry_date ? new Date(discount.expiry_date).toISOString().split('T')[0] : '',
+      autoApply: discount.auto_apply || false,
+      eventId: discount.auto_apply ? discount.event_id : '',
+      priority: discount.priority || 0,
     });
     setSelectedDiscount(discount);
     setIsEditMode(true);
@@ -135,29 +147,25 @@ const AdminDiscountManagement = () => {
   const onSubmit = async (data: DiscountFormValues) => {
     setIsLoading(true);
     try {
+      const discountData = {
+        code: data.code.toUpperCase(),
+        amount: data.amount,
+        description: data.description,
+        max_uses: data.maxUses,
+        expiry_date: data.expiryDate || null,
+        auto_apply: data.autoApply || false,
+        event_id: data.autoApply ? data.eventId : null,
+        priority: data.priority || 0,
+      };
+
       if (isEditMode && selectedDiscount) {
-        // Update existing discount
-        await discountService.updateDiscountCode(selectedDiscount.id, {
-          code: data.code.toUpperCase(),
-          amount: data.amount,
-          description: data.description,
-          max_uses: data.maxUses,
-          expiry_date: data.expiryDate || null,
-        });
+        await discountService.updateDiscountCode(selectedDiscount.id, discountData);
         toast({
           title: "Discount Updated",
           description: `The discount code ${data.code.toUpperCase()} has been updated.`,
         });
       } else {
-        // Create new discount
-        await discountService.createDiscountCode({
-          code: data.code.toUpperCase(),
-          amount: data.amount,
-          description: data.description,
-          max_uses: data.maxUses,
-          expiry_date: data.expiryDate || undefined,
-          is_active: true
-        });
+        await discountService.createDiscountCode(discountData);
         toast({
           title: "Discount Created",
           description: `The discount code ${data.code.toUpperCase()} has been created.`,
@@ -286,6 +294,76 @@ const AdminDiscountManagement = () => {
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name="autoApply"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>Auto Apply Discount</FormLabel>
+                            <FormDescription>
+                              Automatically apply this discount to events without manual entry
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    {form.watch('autoApply') && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="eventId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Select Event</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select an event" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {events.map((event) => (
+                                    <SelectItem key={event.id} value={event.id}>
+                                      {event.title}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Choose the event where this discount will be auto-applied
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="priority"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Priority</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...field} min="0" max="100" />
+                              </FormControl>
+                              <FormDescription>
+                                Priority for multiple auto-apply discounts (0-100, higher means higher priority)
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
 
                     <div className="flex space-x-2">
                       <Button type="submit" className="flex-1" disabled={isLoading}>

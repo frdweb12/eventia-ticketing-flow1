@@ -157,38 +157,55 @@ export type Database = {
       discounts: {
         Row: {
           amount: number
+          auto_apply: boolean
           code: string
           created_at: string
           description: string | null
+          event_id: string | null
           expiry_date: string | null
           id: string
           is_active: boolean
           max_uses: number
+          priority: number
           uses_count: number
         }
         Insert: {
           amount: number
+          auto_apply?: boolean
           code: string
           created_at?: string
           description?: string | null
+          event_id?: string | null
           expiry_date?: string | null
           id?: string
           is_active?: boolean
           max_uses?: number
+          priority?: number
           uses_count?: number
         }
         Update: {
           amount?: number
+          auto_apply?: boolean
           code?: string
           created_at?: string
           description?: string | null
+          event_id?: string | null
           expiry_date?: string | null
           id?: string
           is_active?: boolean
           max_uses?: number
+          priority?: number
           uses_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "discounts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events: {
         Row: {
