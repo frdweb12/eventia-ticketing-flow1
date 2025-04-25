@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,7 +49,7 @@ const UpiPayment = ({ bookingId, amount, onUtrSubmit }: UpiPaymentProps) => {
         toast({
           title: t('payment.errorFetchingUpi') || 'Error fetching UPI details',
           description: t('payment.usingFallback') || 'Using fallback UPI ID',
-          variant: "warning",
+          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
