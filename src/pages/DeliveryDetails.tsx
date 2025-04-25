@@ -1,57 +1,143 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DeliveryDetailsForm from '@/components/payment/DeliveryDetailsForm';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const DeliveryDetails = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  
-  const bookingDetails = location.state?.bookingDetails;
-  
-  // If no booking details, redirect to events page
-  if (!bookingDetails) {
-    React.useEffect(() => {
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (location.state?.bookingDetails) {
+      setBookingDetails(location.state.bookingDetails);
+      setIsLoading(false);
+    } else {
       toast({
-        title: "No booking details found",
-        description: "Please select your tickets first",
+        title: "Error",
+        description: "No booking details found",
         variant: "destructive"
       });
       navigate('/events');
-    }, []);
-    return null;
-  }
-  
-  const handleBack = () => {
-    navigate(-1);
+    }
+  }, [location.state, navigate]);
+
+  const handleFormSubmit = async (formData: any) => {
+    try {
+      // Insert delivery details into Supabase
+      const { data, error } = await supabase
+        .from('delivery_details')
+        .insert({
+          booking_id: bookingDetails.bookingId,
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          pincode: formData.pincode
+        })
+        .select();
+
+      if (error) {
+        console.error('Error saving delivery details:', error);
+        throw new Error(error.message);
+      }
+
+      // Navigate to payment page
+      navigate(`/payment/${bookingDetails.bookingId}`, { 
+        state: { 
+          bookingDetails: {
+            ...bookingDetails,
+            deliveryDetails: formData
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error submitting delivery details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save delivery details. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      <main className="flex-grow py-16">
-        <div className="container mx-auto px-4">
+      <main className="flex-grow pt-16">
+        <div className="container mx-auto px-4 py-8">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate(-1)} 
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t('common.back')}
+          </Button>
+          
           <div className="max-w-3xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold">Delivery Details</h1>
-              <p className="text-gray-600">
-                For event: {bookingDetails.eventTitle}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Amount to pay: ₹{bookingDetails.amount}
-              </p>
-            </div>
-            
-            <DeliveryDetailsForm 
-              bookingId={bookingDetails.bookingId}
-              eventTitle={bookingDetails.eventTitle}
-              amount={bookingDetails.amount}
-              onBack={handleBack}
-            />
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>{t('checkout.deliveryDetails')}</CardTitle>
+                <CardDescription>
+                  {t('checkout.enterDeliveryInfo')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-6 p-4 bg-gray-50 rounded-md">
+                  <h3 className="font-semibold mb-2">{t('checkout.orderSummary')}</h3>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">{t('checkout.event')}:</span>
+                    <span className="font-medium">{bookingDetails.eventTitle}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">{t('checkout.date')}:</span>
+                    <span>{bookingDetails.eventDate}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">{t('checkout.time')}:</span>
+                    <span>{bookingDetails.eventTime}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">{t('checkout.venue')}:</span>
+                    <span>{bookingDetails.venue}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">{t('checkout.tickets')}:</span>
+                    <span>{bookingDetails.ticketCount}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-semibold mt-2 pt-2 border-t border-gray-200">
+                    <span>{t('checkout.total')}:</span>
+                    <span>₹{bookingDetails.amount.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+                
+                <DeliveryDetailsForm onSubmit={handleFormSubmit} />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

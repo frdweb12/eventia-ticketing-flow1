@@ -1,17 +1,14 @@
 
 import { Router } from 'express';
 import authRoutes from '../auth';
-import userRoutes from '../user.routes';
-import eventRoutes from '../event.routes';
-import bookingRoutes from '../booking.routes';
 import paymentRoutes from '../payment.routes';
+import bookingRoutes from '../booking.routes';
 
 const router = Router();
 
+// API routes
 router.use('/auth', authRoutes);
-router.use('/users', userRoutes);
-router.use('/events', eventRoutes);
-router.use('/bookings', bookingRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/bookings', bookingRoutes);
 
 export default router;
